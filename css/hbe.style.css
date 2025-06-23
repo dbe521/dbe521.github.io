@@ -304,8 +304,8 @@
 .hbe-input-field-wave {
 	padding: 0.5em 0em 0.25em;
 	width: 100%;
-	background: #ff000003;
-	color: #0086ff;
+	background: transparent;
+	color: #9da8b2;
 	font-size: 1.25em;
 }
 
