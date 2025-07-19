@@ -1,0 +1,59 @@
+<!DOCTYPE html><html lang="zh"><head><meta charset="utf-8"><meta content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover" name="viewport"><meta name="description" content=""><meta name="hexo-theme-A4" content="v2.0.0"><link rel="alternate icon" type="image/webp" href="/img/favicon.webp"><title>dbe</title><link rel="stylesheet" href="/css/highlight/style1.css"><link rel="stylesheet" href="/css/reset.css"><link rel="stylesheet" href="/css/markdown.css"><link rel="stylesheet" href="/css/fonts.css"><link rel="stylesheet" href="/css/ui.css"><link rel="stylesheet" href="/css/style.css"><link rel="stylesheet" href="/css/returnToTop.css"><link rel="stylesheet" href="/css/unicons.css"><link rel="stylesheet" href="/css/toc.css"><link rel="stylesheet" href="/css/returnToLastPage.css"><link rel="stylesheet" href="/css/lightgallery-bundle.min.css"><link rel="stylesheet" href="/css/custom.css"><link rel="stylesheet" href="/css/fonts/LXGWWenKai-Regular/result.css"><meta name="generator" content="Hexo 7.3.0">
+<style>.github-emoji { position: relative; display: inline-block; width: 1.2em; min-height: 1.2em; overflow: hidden; vertical-align: top; color: transparent; }  .github-emoji > span { position: relative; z-index: 10; }  .github-emoji img, .github-emoji .fancybox { margin: 0 !important; padding: 0 !important; border: none !important; outline: none !important; text-decoration: none !important; user-select: none !important; cursor: auto !important; }  .github-emoji img { height: 1.2em !important; width: 1.2em !important; position: absolute !important; left: 50% !important; top: 50% !important; transform: translate(-50%, -50%) !important; user-select: none !important; cursor: auto !important; } .github-emoji-fallback { color: inherit; } .github-emoji-fallback img { opacity: 0 !important; }</style>
+</head><body><script src="/js/darkmode-js.min.js"></script><script>const options={bottom:"40px",right:"unset",left:"42px",time:"0.3s",mixColor:"#fff",backgroundColor:" #e4e4e4 ",buttonColorDark:"#100f2c",buttonColorLight:"#fff",saveInCookies:!0,label:"🌓",autoMatchOsTheme:!0},darkmode=new Darkmode(options);darkmode.showWidget()</script><div class="paper"><div class="shadow-drop-2-bottom paper-main"><div class="header"><div class="header-container"><style>.header-img{width:56px;height:auto;object-fit:cover;transition:transform .3s ease-in-out;border-radius:50%}</style><img alt="^-^" cache-control="max-age=86400" class="header-img" src="/img/favicon.webp"><div class="header-content"><a class="logo" href="/">dbe</a> <span class="description">喂马、劈柴，周游世界</span></div></div><ul class="nav"><li><a href="/">🏠首页</a></li><li><a href="/list/">📖文章</a></li><li><a href="/tags/">📌标签</a></li><li><a href="/categories/">🔖分类</a></li><li><a href="/about/">🪶关于</a></li><li><a href="/now/">🐚线</a></li></ul></div><div class="post-main"><div class="post-md"><link rel="stylesheet" type="text/css" href="https://cdnjs.cloudflare.com/ajax/libs/hint.css/2.7.0/hint.min.css"><script type="module">import{createSignal,createResource,onMount,createEffect}from"https://esm.sh/solid-js";import html from"https://esm.sh/solid-js/html";import prettyBytes from"https://esm.sh/pretty-bytes";import{UnicodeRange}from"https://esm.sh/@japont/unicode-range@1.0.0";const getECharts=()=>import("https://esm.sh/echarts@5.3.3/dist/echarts.esm.min.js"),getFontData=t=>Object.fromEntries(Object.entries(t).map(([t,e])=>[t,"string"==typeof e?e:e.en])),range=[["基本汉字",19968,40869],["基本汉字补充",40870,40959],["扩展A",13312,19903],["扩展B",131072,173791],["扩展C",173824,177976],["扩展D",177984,178205],["扩展E",178208,183969],["扩展F",183984,191456],["扩展G",196608,201546],["康熙部首",12032,12245],["部首扩展",11904,12019],["兼容汉字",63744,64217],["兼容扩展",194560,195101],["PUA(GBK)部件",59413,59503],["部件扩展",58368,58856],["PUA增补",58880,59087],["汉字笔画",12736,12771],["汉字结构",12272,12283],["汉语注音",12549,12591],["注音扩展",12704,12730],["〇",12295,12295]],RangeAnalyze=t=>{const e=t.reduce((t,e)=>e.chars.startsWith("U+")?t+String.fromCodePoint(...UnicodeRange.parse(e.chars.split(","))):t+e.chars,""),a=range.map(([t,a,s])=>{let n="",r="";for(let t=a;t<=s;t++){const a=String.fromCodePoint(t);e.includes(a)?n+=a:r+=a}return[t,n,r]});return html`
+                <table style="width:80%;margin:auto;padding:1rem">
+                    <thead>
+                        <tr>
+                            <th>位置</th>
+                            <th>存在</th>
+                            <th>不存在</th>
+                            <th>覆盖率</th>
+                        </tr>
+                    </thead>
+                    ${a.map(([t,e,a])=>{const s=100*e.length/(e.length+a.length);return html`
+                            <tr>
+                                <td>${t}</td>
+                                <td>${e.length}</td>
+                                <td>${a.length}</td>
+                                <td>${s.toFixed(2)}%</td>
+                            </tr>
+                        `})}
+                </table>
+            `},TimeAnalyze=(t,e)=>{t.pop();const a=t.reduce((t,e)=>t+e.end-e.start,0);let s;return onMount(()=>{setTimeout(async()=>{let n=(await getECharts()).init(s),r={tooltip:{trigger:"axis",axisPointer:{type:"shadow"}},title:{text:"打包时间分布图",subtext:`时间为 ms; 总时间 ${a} ms;\n${e.fontFamily}`},legend:{top:"15%"},grid:{left:"10%",right:"10%",bottom:"30%",top:"30%"},xAxis:{type:"value"},yAxis:{type:"category",data:["时间轴"]},series:t.map(t=>({name:t.name,type:"bar",stack:"total",label:{show:!0},emphasis:{focus:"series"},data:[parseFloat((t.end-t.start).toFixed(1))]}))};r&&n.setOption(r)},1500)}),html`<div
+                ref=${function(t){s=t}}
+                style="width: 600px;height:400px;margin:auto"
+            ></div>`},DataAnalyze=(t,e)=>{const a=t.reduce((t,e)=>t+e.size,0);let s;return onMount(()=>{setTimeout(async()=>{let n=(await getECharts()).init(s),r={tooltip:{trigger:"item",formatter:t=>`第 ${t.dataIndex+1} 分包\n`+t.data.name+"\n"+prettyBytes(t.data.value)},title:{text:e.fontFamily,subtext:`总共 ${t.length} 分包; 总大小 ${prettyBytes(a)} 点击跳转查看；`,left:"center"},series:[{name:"分包信息",type:"pie",radius:["40%","70%"],avoidLabelOverlap:!1,itemStyle:{borderRadius:10,borderColor:"#fff",borderWidth:2},emphasis:{label:{show:!0,fontSize:"18",fontWeight:"bold"}},labelLine:{show:!0},label:{show:!0,minMargin:5,edgeDistance:10,lineHeight:15,formatter:t=>(100*t.data.value/a).toFixed(2)+"%"},data:t.map(t=>({value:t.size,name:t.name.slice(0,7),hash:t.name}))}]};r&&n.setOption(r),n.on("click",t=>{document.getElementById(t.data.hash).scrollIntoView()})},300)}),html`<div
+                ref=${function(t){s=t}}
+                style="width: 600px;height:600px;margin:auto"
+            ></div>`},CharList=t=>t.map(t=>{const e=t.chars.startsWith("U+")?String.fromCodePoint(...UnicodeRange.parse(t.chars.split(","))):t.chars;return html`<div>
+                    <h3 id="${t.name}">
+                        分片名称 ${t.name} | 分片大小 ${prettyBytes(t.size)}
+                    </h3>
+                    <p>${e}</p>
+                </div>`}),BaseMessage=t=>html`
+                <table style="margin:auto">
+                    ${Object.entries(t).map(t=>html`
+                            <tr>
+                                <td>${t[0].en}</td>
+                                <td>${t[1].en}</td>
+                            </tr>
+                        `)}
+                </table>
+            `,App=()=>{const[t]=createResource(()=>fetch("./reporter.json").then(t=>t.json()).then(t=>(t.message=t.message.windows||t.message.macintosh,t)));createEffect(()=>{if(t()){console.log(t().message),document.body.style.fontFamily=`"${getFontData(t().message).fontFamily||getFontData(t().message).preferredFamily}"`,document.querySelector("title").textContent=getFontData(t().message).fontFamily;const e=document.createElement("link");e.rel="stylesheet",e.href="./"+(t().config.cssFileName||"result")+".css",document.head.appendChild(e)}});return html`<div>
+                ${()=>{return t.loading?"<div>加载中</div>":html` <div>
+                        ${RangeAnalyze(t().data,getFontData(t().message))}
+                        ${DataAnalyze(t().data,getFontData(t().message))}
+                        ${TimeAnalyze(t().record,getFontData(t().message))}
+                        ${e=getFontData(t().message),html`
+                <table style="margin:auto">
+                    ${Object.entries(e).map(t=>html`
+                            <tr>
+                                <td>${t[0].en}</td>
+                                <td>${t[1].en}</td>
+                            </tr>
+                        `)}
+                </table>
+            `}
+                    </div>
+                    ${CharList(t().data)}`;var e}}
+            </div>`};import{render}from"https://esm.sh/solid-js/web";render(App,document.body)</script></div><div class="post-meta"><i></i></div><br><div class="post-footer-pre-next"></div></div><div class="footer"><span>© 2018-2022 dbe</span></div><div class="footer-last"><span>🌊看过大海的人不会忘记海的广阔🌊</span></div><script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.4.0/jquery.min.js"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/1.7.2/jquery.min.js" type="text/javascript"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/jqueryui/1.12.1/jquery-ui.min.js" type="text/javascript"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.tocify/1.9.0/javascripts/jquery.tocify.min.js" type="text/javascript"></script><script src="/js/toc.js"></script><script src="/js/randomHeaderContent.js"></script><script src="/js/returnToTop.js"></script><script src="/js/returnToLastPage.js"></script><script src="/js/lightgallery/lightgallery.umd.min.js"></script><script src="/js/lightgallery/plugins/lg-thumbnail.umd.min.js"></script><script src="/js/lightgallery/plugins/lg-fullscreen.umd.min.js"></script><script src="/js/lightgallery/plugins/lg-autoplay.umd.min.js"></script><script src="/js/lightgallery/plugins/lg-zoom.umd.min.js"></script><script src="/js/lightgallery/plugins/lg-rotate.umd.min.js"></script><script src="/js/lightgallery/plugins/lg-paper.umd.min.js"></script><script type="text/javascript">if("undefined"!=typeof lightGallery){var options1={selector:".gallery-item",plugins:[lgThumbnail,lgFullscreen,lgAutoplay,lgZoom,lgRotate,lgPager],thumbnail:!0,zoom:!0,rotate:!0,autoplay:!0,fullScreen:!0,pager:!1,zoomFromOrigin:!0,actualSize:!0,enableZoomAfter:300};lightGallery(document.getElementsByClassName(".article-gallery")[0],options1)}</script><script async src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script></div><div class="progress-wrap shadow-drop-2-bottom"><svg class="progress-circle svg-content" width="100%" height="100%" viewBox="-1 -1 102 102"><path d="M50,1 a49,49 0 0,1 0,98 a49,49 0 0,1 0,-98"/></svg></div><div class="return-to-last-progress-wrap shadow-drop-2-bottom"><svg class="progress-circle svg-content" width="100%" height="100%" viewBox="-1 -1 102 102"><path d="M50,1 a49,49 0 0,1 0,98 a49,49 0 0,1 0,-98"/></svg></div></div></body></html><script src="/js/emojiHandler.js"></script><script>document.addEventListener("DOMContentLoaded",()=>{wrapEmojis(".paper")})</script>
