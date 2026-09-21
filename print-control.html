@@ -1,0 +1,29 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>智能打印管控 · AI 业务场景</title>
+<meta name="description" content="每一页打印都看得见、管得住">
+<script>
+(function () {
+  try {
+    var t = localStorage.getItem("sc-theme");
+    if (t !== "dark" && t !== "light" && t !== "mono") t = "dark";
+    document.documentElement.setAttribute("data-theme", t);
+  } catch (e) {
+    document.documentElement.setAttribute("data-theme", "dark");
+  }
+})();
+</script>
+<link rel="stylesheet" href="assets/css/theme.css">
+<link rel="stylesheet" href="assets/css/layout.css">
+</head>
+<body data-scenario="print-control">
+<div id="app"></div>
+<noscript><div class="nojs">本页内容由本地脚本生成，请允许浏览器运行脚本后重新打开此文件。若仍无法显示，请确认 assets 文件夹与本文件在同一目录下。</div></noscript>
+<script src="assets/icons/sprite.js"></script>
+<script src="assets/js/content.js"></script>
+<script src="assets/js/app.js"></script>
+</body>
+</html>
