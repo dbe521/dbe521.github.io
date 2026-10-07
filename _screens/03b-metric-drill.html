@@ -1,0 +1,32 @@
+<!doctype html>
+<html lang="zh-CN" data-theme="dark" data-screen="03b-metric-drill">
+<head>
+<meta charset="utf-8">
+<title>AI 企业经营决策中心（界面示意）</title>
+<link rel="stylesheet" href="screen.css">
+</head>
+<body>
+<script src="../assets/icons/sprite.js"></script>
+<div class="win">
+  <div class="app">
+    <aside class="side">
+      <div class="logo">
+        <span class="logo-i"><svg class="ic" style="width:17px;height:17px"><use href="#i-layout-dashboard"></use></svg></span>
+        <div><div class="logo-t">AI 企业经营决策中心</div><div class="logo-s mono">BUSINESS DECISION CENTER</div></div>
+      </div>
+      <nav class="nav"><a class="nav-a"><span class="nav-d"></span>经营驾驶舱</a><a class="nav-a"><span class="nav-d"></span>指标字典</a><a class="nav-a on"><span class="nav-d"></span>异动归因<span class="nav-b">5</span></a><a class="nav-a"><span class="nav-d"></span>经营例会</a><a class="nav-a"><span class="nav-d"></span>待办中心<span class="nav-b">9</span></a><a class="nav-a"><span class="nav-d"></span>数据源管理</a><a class="nav-a"><span class="nav-d"></span>权限与审计</a></nav>
+      <div class="side-f"><span>指标口径版本 v1.4</span><span class="tag ok">已校验</span></div>
+    </aside>
+    <div class="main">
+      <div class="tb">
+        <div class="tb-crumb">异动归因 <em>/ 华东区毛利率</em></div>
+        <div class="tb-search"><svg class="ic" style="width:13px;height:13px"><use href="#i-search"></use></svg>搜索客户、设备编号、工单号</div>
+        <div class="tb-right"><div class="tb-pill"><svg class="ic" style="width:13px;height:13px"><use href="#i-calendar"></use></svg>2026 年 9 月<svg class="ic" style="width:12px;height:12px"><use href="#i-chevron-down"></use></svg></div><div class="tb-ic"><svg class="ic" style="width:15px;height:15px"><use href="#i-bell"></use></svg><b>5</b></div><div class="tb-user"><span class="av">沈立</span><u>沈立言 · 总经理</u></div></div>
+      </div>
+      <div class="canvas"><div style="flex:1;min-height:0;display:grid;grid-template-rows:auto minmax(0,1fr);gap:16px;min-height:0"><div class="panel" style="flex-direction:row;align-items:center;padding:0 18px;height:76px"><div><div class="mono" style="color:var(--s-acc);font-size:11px">DRILL DOWN</div><div style="font-size:15.5px;font-weight:600;letter-spacing:-.012em;margin-top:5px">华东区 · 主营业务毛利率</div></div><div style="margin-left:auto;display:flex;align-items:center;gap:22px"><div style="text-align:right"><div style="font-size:11.5px;color:var(--s-t3)">本期</div><div style="font-size:20px;font-weight:600;font-family:'Geist Mono',monospace">21.4%</div></div><div style="text-align:right"><div style="font-size:11.5px;color:var(--s-t3)">同比</div><div style="font-size:20px;font-weight:600;color:#FCA5A5;font-family:'Geist Mono',monospace">−4.2pp</div></div><span class="chip acc"><svg class="ic" style="width:13px;height:13px"><use href="#i-history"></use></svg>查看口径版本</span></div></div><div class="row" style="grid-template-columns:minmax(0,1.5fr) minmax(0,1fr)"><div class="panel "><div class="p-hd"><h3>下钻路径</h3><span class="sub">从汇总数到原始单据共 3 层</span><div class="right"><span class="chip">导出路径</span></div></div><div class="p-bd"><table><thead><tr><th style="width:18%">层级</th><th style="width:34%">对象</th><th class="tb-num" style="width:14%">本期</th><th class="tb-num" style="width:18%">同比变化</th><th style="width:16%">操作</th></tr></thead><tbody><tr><td>集团</td><td>主营业务毛利率</td><td class="num">26.8%</td><td class="num">+0.4pp</td><td><span class="chip">已展开</span></td></tr><tr><td>区域</td><td><b>华东区</b></td><td class="num">21.4%</td><td class="num">−4.2pp</td><td><span class="chip acc">已展开</span></td></tr><tr><td>客户</td><td>宁波睿达智能装备</td><td class="num">18.2%</td><td class="num">−6.8pp</td><td><span class="chip"><svg class="ic" style="width:13px;height:13px"><use href="#i-arrow-right"></use></svg>下钻</span></td></tr><tr><td>客户</td><td>杭州海联电子</td><td class="num">22.6%</td><td class="num">−1.9pp</td><td><span class="chip"><svg class="ic" style="width:13px;height:13px"><use href="#i-arrow-right"></use></svg>下钻</span></td></tr><tr><td>合同</td><td>PJ-2608-231 硬件折扣条款</td><td class="num">16.4%</td><td class="num">−8.1pp</td><td><span class="chip"><svg class="ic" style="width:13px;height:13px"><use href="#i-arrow-right"></use></svg>下钻</span></td></tr><tr><td>成本项</td><td>视频监控设备采购单价</td><td class="num">—</td><td class="num">+7.3%</td><td><span class="chip"><svg class="ic" style="width:13px;height:13px"><use href="#i-arrow-right"></use></svg>下钻</span></td></tr></tbody></table></div></div><div class="panel "><div class="p-hd"><h3>归因构成</h3><span class="sub">按贡献度排序</span></div><div class="p-bd"><div style="padding:14px 16px"><div style="padding:10px 16px"><div style="padding:9px 0"><div style="display:flex;justify-content:space-between;font-size:12.5px;margin-bottom:7px"><span style="color:var(--s-t2)">硬件采购单价上涨</span><span style="color:var(--s-t1);font-family:Geist Mono,monospace">−2.6pp</span></div><div class="bar"><i style="width:62%"></i></div></div><div style="padding:9px 0"><div style="display:flex;justify-content:space-between;font-size:12.5px;margin-bottom:7px"><span style="color:var(--s-t2)">销售折扣加深</span><span style="color:var(--s-t1);font-family:Geist Mono,monospace">−1.4pp</span></div><div class="bar"><i style="width:33%"></i></div></div><div style="padding:9px 0"><div style="display:flex;justify-content:space-between;font-size:12.5px;margin-bottom:7px"><span style="color:var(--s-t2)">服务人工成本上升</span><span style="color:var(--s-t1);font-family:Geist Mono,monospace">−0.2pp</span></div><div class="bar"><i style="width:5%"></i></div></div></div><div style="border-top:1px solid var(--s-line);margin:6px 0 12px"></div><div style="font-size:12.5px;color:var(--s-t2);line-height:1.7"><b>建议</b>：宁波睿达合同硬件折扣已达 18%，建议在下次续约时将服务包与硬件分开报价。</div><div style="margin-top:14px;display:flex;gap:8px"><span class="chip acc"><svg class="ic" style="width:13px;height:13px"><use href="#i-arrow-right"></use></svg>派发待办</span><span class="chip">生成例会材料</span></div></div></div></div></div></div></div>
+    </div>
+  </div>
+  <div class="note"><b>系统界面示意</b>·数据为演示样例，不代表实际交付效果<u>数据更新于 2026-09-21 09:42</u></div>
+</div>
+</body>
+</html>

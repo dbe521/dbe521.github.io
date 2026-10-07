@@ -1,11 +1,10 @@
 /* ==========================================================================
-   app.js  ·  渲染引擎 / 主题切换 / 交互
+   app.js  ·  渲染引擎 / 主题切换 / 交互 / 灯箱
    --------------------------------------------------------------------------
-   一般情况下不需要修改这个文件。改文案请改 content.js。
-   三段职责：
+   一般不需要修改这个文件。改文案请改 content.js。
      1. 颜色系统：三套皮肤下的场景色解析与透明层推导
-     2. 渲染：首页与 7 个详情页的结构生成
-     3. 交互：主题切换、滚动进场、导航高亮
+     2. 渲染：首页与 7 个详情页（含系统界面图、决策人三问、实施案例）
+     3. 交互：主题切换、滚动进场、导航高亮、图片灯箱
    ========================================================================== */
 
 (function () {
@@ -39,6 +38,11 @@
       '" aria-hidden="true" focusable="false"><use href="#i-' + esc(name) + '"></use></svg>'
     );
   }
+  function pct(a, b) {
+    var x = parseFloat(a), y = parseFloat(b);
+    if (!isFinite(x) || !isFinite(y) || x <= 0) return "-";
+    return "↓" + Math.round((1 - y / x) * 100) + "%";
+  }
 
   /* ======================================================================
      二、颜色系统
@@ -57,7 +61,6 @@
     return "rgba(" + c[0] + "," + c[1] + "," + c[2] + "," + a + ")";
   }
 
-  /* 降低饱和度：供苹果极简皮肤使用 */
   function desat(hex, amt) {
     var c = hex2rgb(hex);
     if (c[0] === null) return hex;
@@ -108,6 +111,8 @@
     el.style.setProperty("--c-wash", rgba(hex, isDark ? 0.06 : 0.04));
   }
 
+  var pageAccent = { d: null, l: null };
+
   function applyColors() {
     var isDark = curTheme() === "dark";
     var sc = isDark ? pageAccent.d : pageAccent.l;
@@ -126,8 +131,6 @@
       paint(el, isDark ? el.getAttribute("data-cd") : el.getAttribute("data-cl"));
     }
   }
-
-  var pageAccent = { d: null, l: null };
 
   /* ======================================================================
      三、导航与页脚
@@ -163,15 +166,23 @@
   }
 
   function footHTML() {
-    var note = S.DEMO_MODE
-      ? '<span class="demo-note">' + esc(S.demoNote) + "</span>"
-      : "";
+    var note = S.DEMO_MODE ? '<span class="demo-note">' + esc(S.demoNote) + "</span>" : "";
     return (
       '<footer class="foot"><div class="wrap foot-in">' +
       '<span class="foot-t">' + esc(S.brand.text) + "</span>" +
       '<div class="foot-l">' + note +
       '<a class="foot-a" href="#top">' + icon("arrow-up") + "回到顶部</a>" +
       "</div></div></footer>"
+    );
+  }
+
+  function lightboxHTML() {
+    return (
+      '<div class="lb" id="lb" role="dialog" aria-modal="true" aria-label="查看系统界面原图">' +
+      '<button class="lb-close" type="button" id="lb-close">' + icon("x") + "关闭</button>" +
+      '<img id="lb-img" src="" alt="">' +
+      '<div class="lb-tip">点击空白处或按 Esc 关闭</div>' +
+      "</div>"
     );
   }
 
@@ -234,7 +245,6 @@
 
   function renderHome() {
     var h = [];
-    h.push("<!-- 首屏 -->");
     h.push('<section class="hero"><div class="wrap"><div class="hero-in">');
     h.push('<div class="hero-copy">');
     h.push('<h1 class="h1 hero-l" style="--i:0">' + esc(S.hero.h1a + S.hero.h1b) + "</h1>");
@@ -303,6 +313,122 @@
     return h + "</div>";
   }
 
+  /* 首屏图片框（方案 B：横向框，图为主 + 细说明条） */
+  function shotboxHTML(sc, sec) {
+    if (!sc.screen || isBlank(sc.screen.overview)) return "";
+    return (
+      '<div><button class="shotbox hero-l" style="--i:2" type="button"' +
+      ' data-lightbox="' + esc(sc.screen.overview) + '" data-cd="' + esc(sc.accent.d) +
+      '" data-cl="' + esc(sc.accent.l) + '" aria-label="查看系统界面原图">' +
+      '<span class="shot"><img src="' + esc(sc.screen.overview) + '" alt="' +
+      esc(sc.screen.system) + ' 系统界面示意"></span>' +
+      '<span class="shotcap"><span class="shotcap-main"><span class="shotname">' +
+      txt(sc.screen.system) + '</span></span><span class="shotchip">' + esc(sec.title) +
+      "</span></span></button>" +
+      '<div class="shotnote">' + icon("search") + esc(U.clickHint) +
+      " · 系统界面示意，数据为演示样例</div></div>"
+    );
+  }
+
+  /* 决策人三问 */
+  function qaHTML(sc) {
+    if (!sc.qa || !sc.qa.length) return "";
+    var items = sc.qa
+      .map(function (x, i) {
+        return (
+          '<div class="qa rv" style="--i:' + i + '">' +
+          '<div class="qa-q"><span class="qa-m">问</span>' +
+          '<span class="qa-qt">' + txt(x.q) + "</span></div>" +
+          '<div class="qa-a">' + txt(x.a) + "</div></div>"
+        );
+      })
+      .join("");
+    return (
+      '<section class="blk"><div class="wrap">' +
+      blkHead(U.qaTitle, U.qaDesc) +
+      '<div class="qa-list">' + items + "</div></div></section>"
+    );
+  }
+
+  /* 实施案例（仅 AI 财务场景） */
+  function caseHTML(sc) {
+    var c = sc.case;
+    if (!c) return "";
+    var claims = (c.claims || [])
+      .map(function (x, i) {
+        return (
+          '<div class="case-claim rv" style="--i:' + i + '"><h3>' + txt(x.k) + "</h3>" +
+          "<p>" + txt(x.v) + "</p></div>"
+        );
+      })
+      .join("");
+    var scale = (c.scale || [])
+      .map(function (x) {
+        return (
+          '<div><div class="case-stat-k">' + esc(x.k) + "</div>" +
+          '<div class="case-stat-v">' + esc(x.v) + "</div></div>"
+        );
+      })
+      .join("");
+    var rows = "";
+    var lastG = null;
+    (c.effort || []).forEach(function (x) {
+      if (!isBlank(x.g) && x.g !== lastG) {
+        rows += '<tr class="g"><td colspan="4">' + esc(x.g) + "</td></tr>";
+        lastG = x.g;
+      }
+      rows +=
+        "<tr><td>" + esc(x.k) + '</td><td class="num">' + esc(x.a) +
+        '</td><td class="num">' + esc(x.b) + '</td><td class="num case-drop">' +
+        pct(x.a, x.b) + "</td></tr>";
+    });
+    var total = c.effortTotal
+      ? "<tr class=\"total\"><td>合计</td><td class=\"num\">" + esc(c.effortTotal.a) +
+        '</td><td class="num">' + esc(c.effortTotal.b) + '</td><td class="num">' +
+        pct(c.effortTotal.a, c.effortTotal.b) + "</td></tr>"
+      : "";
+    var miles = (c.milestones || [])
+      .map(function (m) {
+        return '<div class="case-mile">' + icon("check") + "<span>" + esc(m) + "</span></div>";
+      })
+      .join("");
+    return (
+      '<section class="blk band"><div class="wrap">' +
+      '<div class="blk-head rv"><div class="mono" style="color:var(--accent);margin-bottom:14px">' +
+      esc(U.caseLabel) + '</div><h2 class="h2">' + txt(c.title) + "</h2>" +
+      '<p class="lede" style="margin-top:16px">' + txt(c.lede) + "</p></div>" +
+      '<div class="case-claims">' + claims + "</div>" +
+      '<div class="case-scale">' + scale + "</div>" +
+      '<div class="case-effort rv">' +
+      '<div class="case-effort-hd"><h3>月结投入对比</h3><span>单位：人天</span></div>' +
+      "<table><thead><tr><th>环节</th><th class=\"num\" style=\"text-align:right\">手工</th>" +
+      '<th class="num" style="text-align:right">系统</th>' +
+      '<th class="num" style="text-align:right">降幅</th></tr></thead><tbody>' +
+      rows + total + "</tbody></table></div>" +
+      '<div class="case-miles">' + miles + "</div>" +
+      '<div class="case-note rv">' + icon("alert-triangle") + "<span>" + esc(c.disclaimer) + "</span></div>" +
+      "</div></section>"
+    );
+  }
+
+  /* 明细大图（放在核心功能之前） */
+  function figureHTML(sc) {
+    if (!sc.screen || isBlank(sc.screen.detail)) return "";
+    var head = blkHead(
+      U.screenDetailLabel,
+      isBlank(sc.screen.detailDesc) ? "" : sc.screen.detailDesc
+    );
+    return (
+      '<section class="figure"><div class="wrap">' + head +
+      '<button class="figure-wide rv" type="button" data-lightbox="' + esc(sc.screen.detail) +
+      '" aria-label="查看界面明细原图">' +
+      '<img src="' + esc(sc.screen.detail) + '" alt="' + esc(sc.screen.system) +
+      ' 界面明细示意" loading="lazy"></button>' +
+      '<div class="figurenote">' + esc(U.clickHint) + " · 系统界面示意，数据为演示样例</div>" +
+      "</div></section>"
+    );
+  }
+
   function renderDetail() {
     var id = D.body.getAttribute("data-scenario");
     var sc = S.scenarios[id];
@@ -322,17 +448,21 @@
     h.push('<h1 class="h1 hero-l" style="--i:2">' + txt(sc.name) + "</h1>");
     h.push('<p class="lede hero-l" style="--i:3">' + txt(sc.tagline) + "</p>");
     h.push("</div>");
-    h.push('<div class="field hero-l" style="--i:2" data-cd="' + esc(sc.accent.d) + '" data-cl="' + esc(sc.accent.l) + '">');
-    h.push('<svg class="field-i" aria-hidden="true" focusable="false"><use href="#i-' + esc(sc.icon) + '"></use></svg>');
-    h.push('<div class="field-t"><span class="mono">' + esc(sc.nameEn) + "</span>" +
-      '<span class="chip">' + icon(sec.layout === "bento" ? "target" : "route") + esc(sec.title) + "</span></div>");
+    h.push(shotboxHTML(sc, sec));
     h.push("</div>");
-    h.push("</div></div></section>");
+
+    /* 首屏下方的「打开首页能看到什么」 */
+    if (sc.screen && !isBlank(sc.screen.overviewDesc)) {
+      h.push('<div class="screendesc rv" data-cd="' + esc(sc.accent.d) + '" data-cl="' +
+        esc(sc.accent.l) + '"><div class="lb2">' + esc(U.screenDescLabel) + "</div><p>" +
+        txt(sc.screen.overviewDesc) + "</p></div>");
+    }
+    h.push("</div></section>");
 
     /* ---- 业务痛点 ---- */
     if (sc.pains && sc.pains.length) {
-      h.push('<section class="blk"><div class="wrap">');
-      h.push(blkHead(U.painTitle, U.painDesc));
+      h.push('<section class="blk tint"><div class="wrap">');
+      h.push(blkHead(isBlank(sc.painTitle) ? U.painTitle : sc.painTitle, U.painDesc));
       h.push('<div class="pain-grid">');
       sc.pains.forEach(function (p, i) {
         h.push('<div class="pain rv" style="--i:' + i + '">');
@@ -374,9 +504,18 @@
       h.push("</div></div></section>");
     }
 
+    /* ---- 决策人三问 ---- */
+    h.push(qaHTML(sc));
+
+    /* ---- 实施案例（仅 AI 财务） ---- */
+    h.push(caseHTML(sc));
+
+    /* ---- 界面明细大图 ---- */
+    h.push(figureHTML(sc));
+
     /* ---- 核心功能 ---- */
     if (sc.features && sc.features.length) {
-      h.push('<section class="blk"><div class="wrap">');
+      h.push('<section class="blk tint"><div class="wrap">');
       h.push(blkHead(U.featTitle, U.featDesc));
       h.push('<div class="feat-grid">');
       sc.features.forEach(function (f, i) {
@@ -455,38 +594,23 @@
   function initReveal() {
     var els = D.querySelectorAll(".rv");
     if (!els.length) return;
-
-    function show(el) {
-      el.classList.add("in");
-    }
-
+    function show(el) { el.classList.add("in"); }
     if (!("IntersectionObserver" in window)) {
       for (var j = 0; j < els.length; j++) show(els[j]);
       return;
     }
-
     var io = new IntersectionObserver(
       function (entries) {
         entries.forEach(function (e) {
-          if (e.isIntersecting) {
-            show(e.target);
-            io.unobserve(e.target);
-          }
+          if (e.isIntersecting) { show(e.target); io.unobserve(e.target); }
         });
       },
-      /* 底部放宽 10%，保证处于页面末端的区块也能触发；
-         若元素比视口还高，ratio 永远到不了 1，因此阈值用 0。 */
       { rootMargin: "0px 0px 10% 0px", threshold: 0 }
     );
-
     for (var k = 0; k < els.length; k++) {
       var el = els[k];
       var r = el.getBoundingClientRect();
-      /* 首屏内或已经滚动到上方的元素：立即显示，避免出现永远不可见的内容 */
-      if (r.top < (window.innerHeight || 0) || r.bottom <= 0) {
-        show(el);
-        continue;
-      }
+      if (r.top < (window.innerHeight || 0) || r.bottom <= 0) { show(el); continue; }
       io.observe(el);
     }
   }
@@ -498,7 +622,7 @@
     if (hero && "IntersectionObserver" in window) {
       new IntersectionObserver(
         function (e) { nav.classList.toggle("solid", !e[0].isIntersecting); },
-        { rootMargin: "-" + 64 + "px 0px 0px 0px", threshold: 0 }
+        { rootMargin: "-64px 0px 0px 0px", threshold: 0 }
       ).observe(hero);
     }
     var secs = D.querySelectorAll("[data-sec]");
@@ -518,6 +642,42 @@
       );
       for (var i = 0; i < secs.length; i++) io.observe(secs[i]);
     }
+  }
+
+  /* 图片灯箱 */
+  function initLightbox() {
+    var lb = D.getElementById("lb");
+    var img = D.getElementById("lb-img");
+    var close = D.getElementById("lb-close");
+    if (!lb || !img) return;
+    var lastFocus = null;
+
+    function open(src, alt) {
+      lastFocus = D.activeElement;
+      img.setAttribute("src", src);
+      img.setAttribute("alt", alt || "系统界面示意");
+      lb.classList.add("on");
+      D.documentElement.style.overflow = "hidden";
+      close.focus();
+    }
+    function shut() {
+      lb.classList.remove("on");
+      img.setAttribute("src", "");
+      D.documentElement.style.overflow = "";
+      if (lastFocus && lastFocus.focus) lastFocus.focus();
+    }
+
+    var triggers = D.querySelectorAll("[data-lightbox]");
+    for (var i = 0; i < triggers.length; i++) {
+      triggers[i].addEventListener("click", function () {
+        open(this.getAttribute("data-lightbox"), this.getAttribute("aria-label"));
+      });
+    }
+    close.addEventListener("click", shut);
+    lb.addEventListener("click", function (e) { if (e.target === lb) shut(); });
+    D.addEventListener("keydown", function (e) {
+      if (e.key === "Escape" && lb.classList.contains("on")) shut();
+    });
   }
 
   /* ======================================================================
@@ -541,12 +701,14 @@
       '<main id="top">' +
       (isDetail ? renderDetail() : renderHome()) +
       "</main>" +
-      footHTML();
+      footHTML() +
+      lightboxHTML();
 
     applyColors();
     initTheme();
     initReveal();
     initNavState();
+    initLightbox();
   }
 
   if (D.readyState === "loading") D.addEventListener("DOMContentLoaded", boot);
