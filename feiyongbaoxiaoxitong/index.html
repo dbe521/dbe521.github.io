@@ -1,0 +1,1243 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>费用报销系统 · 演示版</title>
+<style>
+:root{
+  --bg:#FAF7F3; --surface:#FFFFFF; --surface-2:#F5F0EA; --surface-3:#FBF9F6;
+  --line:#E9E2D9; --line-strong:#DAD0C3;
+  --ink:#221F1B; --ink-2:#565048; --ink-3:#857D72;
+  --brand:#3A4E7A; --brand-soft:#DFE6F4;
+  --c-purchase:#E6DEFB; --c-purchase-ink:#4B3F86;
+  --c-expense:#CFEFE2;  --c-expense-ink:#14604A;
+  --c-amount:#FFE7BE;   --c-amount-ink:#8A5610;
+  --c-wait:#FFF1C9;     --c-wait-ink:#8A6410;
+  --c-info:#D9E7FF;     --c-info-ink:#274A8C;
+  --c-danger:#F7DCD5;   --c-danger-ink:#A2452F;
+  --c-ok:#D5F0DC;       --c-ok-ink:#1D6040;
+  --c-neutral:#EDE7DE;  --c-neutral-ink:#6A6257;
+  --r-sm:6px; --r-md:10px; --r-lg:16px;
+  --shadow-1:0 1px 2px rgba(43,38,32,.05);
+  --shadow-2:0 8px 24px -10px rgba(43,38,32,.16);
+  --shadow-3:0 26px 60px -24px rgba(43,38,32,.28);
+  --ease:cubic-bezier(0.16,1,0.3,1); --dur:240ms;
+  --font:"PingFang SC","HarmonyOS Sans SC","Source Han Sans SC","Noto Sans SC","Microsoft YaHei",sans-serif;
+  --font-num:"JetBrains Mono","Cascadia Mono","SF Mono",Consolas,ui-monospace,monospace;
+}
+*{box-sizing:border-box}
+body{margin:0;font-family:var(--font);font-size:15px;line-height:1.7;color:var(--ink);background:var(--bg);-webkit-font-smoothing:antialiased}
+.atmos{position:fixed;inset:0;pointer-events:none;z-index:0;
+  background-image:repeating-linear-gradient(0deg,transparent,transparent 47px,rgba(43,38,32,.02) 47px,rgba(43,38,32,.02) 48px),
+                   repeating-linear-gradient(90deg,transparent,transparent 47px,rgba(43,38,32,.02) 47px,rgba(43,38,32,.02) 48px)}
+.shell{position:relative;z-index:1;display:grid;grid-template-columns:236px minmax(0,1fr);min-height:100vh}
+h1,h2,h3,h4{margin:0;font-weight:650;letter-spacing:.02em}
+.num{font-family:var(--font-num);font-variant-numeric:tabular-nums;letter-spacing:-.01em}
+
+/* 侧栏 */
+.side{border-right:1px solid var(--line);background:var(--surface);padding:20px 14px;display:flex;flex-direction:column;gap:4px}
+.brand{display:flex;align-items:center;gap:10px;padding:4px 8px 18px}
+.brand-mark{width:32px;height:32px;border-radius:9px;background:var(--brand);color:#fff;display:grid;place-items:center;font-size:15px;font-weight:700;font-family:var(--font-num)}
+.brand-name{font-size:15px;font-weight:650;letter-spacing:.04em}
+.brand-sub{font-size:11px;color:var(--ink-3);letter-spacing:.18em}
+.nav{display:flex;align-items:center;gap:10px;padding:9px 12px;border-radius:var(--r-md);color:var(--ink-2);font-size:14px;min-height:42px;border-left:3px solid transparent;cursor:pointer;transition:all var(--dur) var(--ease);border-top:0;border-right:0;border-bottom:0;background:none;width:100%;text-align:left;font-family:var(--font)}
+.nav:hover{background:var(--surface-2);color:var(--ink)}
+.nav.on{background:var(--brand-soft);color:var(--ink);font-weight:600;border-left-color:var(--brand)}
+.nav .dot{width:8px;height:8px;border-radius:3px;flex:none}
+.nav .badge{margin-left:auto;font-family:var(--font-num);font-size:12px;padding:1px 7px;border-radius:999px;background:var(--c-purchase);color:var(--c-purchase-ink)}
+.side-foot{margin-top:auto;padding:12px;border-radius:var(--r-md);background:var(--surface-2);font-size:12.5px;color:var(--ink-3)}
+
+
+
+
+
+
+/* 主区 */
+.main{padding:26px 30px 60px;min-width:0}
+.topbar{display:flex;align-items:flex-end;gap:14px;margin-bottom:20px}
+.topbar h1{font-size:25px}
+.topbar .sub{color:var(--ink-3);font-size:13.5px}
+.spacer{margin-left:auto}
+.panel{background:var(--surface);border:1px solid var(--line);border-radius:var(--r-lg);box-shadow:var(--shadow-1);overflow:hidden;margin-bottom:20px}
+.panel-head{display:flex;align-items:center;gap:12px;padding:15px 20px;border-bottom:1px solid var(--line)}
+.panel-head h2{font-size:15.5px}
+.panel-head .meta{font-size:13px;color:var(--ink-3)}
+.panel-body{padding:18px 20px}
+
+/* 统计卡 */
+.stats{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:14px;margin-bottom:20px}
+.stat{background:var(--surface);border:1px solid var(--line);border-radius:var(--r-lg);padding:16px 18px;border-top:3px solid var(--accent,var(--brand));box-shadow:var(--shadow-1)}
+.stat .k{font-size:12.5px;color:var(--ink-3);letter-spacing:.06em}
+.stat .v{font-family:var(--font-num);font-size:27px;font-weight:600;line-height:1.25;margin-top:2px}
+.stat .hint{font-size:12px;color:var(--ink-3)}
+.stat.purchase{--accent:var(--c-purchase)} .stat.purchase .v{color:var(--c-purchase-ink)}
+.stat.expense{--accent:var(--c-expense)}  .stat.expense .v{color:var(--c-expense-ink)}
+.stat.amount{--accent:var(--c-amount)}    .stat.amount .v{color:var(--c-amount-ink)}
+.stat.wait{--accent:var(--c-info)}        .stat.wait .v{color:var(--c-info-ink)}
+
+/* 表格 */
+table{width:100%;border-collapse:collapse}
+thead th{text-align:left;font-size:12.5px;font-weight:600;letter-spacing:.1em;color:var(--ink-3);padding:11px 20px;border-bottom:1px solid var(--line);background:var(--surface-2)}
+tbody td{padding:13px 20px;border-bottom:1px solid var(--line);font-size:14px;vertical-align:middle}
+tbody tr:last-child td{border-bottom:0}
+tbody tr{transition:background var(--dur) var(--ease)}
+tbody tr.click:hover{background:var(--surface-2);cursor:pointer}
+.td-right{text-align:right}
+.no{font-family:var(--font-num);font-size:13px;color:var(--ink-2)}
+.strong{font-weight:600}
+.bar{display:inline-block;width:3px;height:18px;border-radius:2px;margin-right:10px;vertical-align:-4px}
+.tag{display:inline-block;font-size:12px;padding:3px 10px;border-radius:6px;font-weight:600;letter-spacing:.04em;white-space:nowrap}
+.tag.purchase{background:var(--c-purchase);color:var(--c-purchase-ink)}
+.tag.expense{background:var(--c-expense);color:var(--c-expense-ink)}
+.tag.wait{background:var(--c-wait);color:var(--c-wait-ink)}
+.tag.info{background:var(--c-info);color:var(--c-info-ink)}
+.tag.ok{background:var(--c-ok);color:var(--c-ok-ink)}
+.tag.danger{background:var(--c-danger);color:var(--c-danger-ink)}
+.tag.mute{background:var(--c-neutral);color:var(--c-neutral-ink)}
+.amt{font-family:var(--font-num);font-weight:600;font-variant-numeric:tabular-nums}
+.amt.lead{background:var(--c-amount);color:var(--c-amount-ink);padding:3px 9px;border-radius:6px;font-size:15px}
+
+/* 按钮与表单 */
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;font:inherit;font-size:14px;font-weight:600;cursor:pointer;border-radius:var(--r-md);border:1px solid transparent;padding:9px 18px;min-height:42px;transition:all var(--dur) var(--ease)}
+.btn:active{transform:translateY(1px)}
+.btn-primary{background:var(--brand);color:#fff}
+.btn-primary:hover{box-shadow:var(--shadow-2)}
+.btn-ghost{background:var(--surface);border-color:var(--line-strong);color:var(--ink-2)}
+.btn-ghost:hover{background:var(--surface-2);color:var(--ink)}
+.btn-danger{background:var(--c-danger);color:var(--c-danger-ink)}
+.btn-gold{background:var(--c-amount-ink);color:#fff}
+.btn-sm{padding:6px 13px;min-height:36px;font-size:13px}
+.btn:disabled{opacity:.5;cursor:not-allowed}
+:focus-visible{outline:2px solid var(--brand);outline-offset:2px}
+.field{margin-bottom:16px}
+.field label{display:block;font-size:13px;color:var(--ink-2);margin-bottom:6px;letter-spacing:.04em}
+input,select,textarea{font:inherit;font-size:14px;color:var(--ink);background:var(--surface-3);border:1px solid var(--line-strong);border-radius:var(--r-md);padding:9px 12px;width:100%;min-height:42px}
+textarea{min-height:92px;resize:vertical}
+input[type=number]{-moz-appearance:textfield}
+input[type=number]::-webkit-inner-spin-button,input[type=number]::-webkit-outer-spin-button{-webkit-appearance:none;margin:0}
+.blocks{display:flex;gap:10px;flex-wrap:wrap}
+.block{flex:1 1 130px;min-height:64px;border-radius:var(--r-md);cursor:pointer;border:1px solid var(--line-strong);background:var(--surface-3);display:flex;flex-direction:column;justify-content:center;gap:2px;padding:10px 14px;transition:all var(--dur) var(--ease)}
+.block .t{font-size:14.5px;font-weight:600}
+.block .s{font-size:12px;color:var(--ink-3)}
+.block.on{background:var(--c-info);border-color:var(--brand);color:var(--c-info-ink)}
+.block.on .s{color:inherit;opacity:.75}
+.item-row{display:grid;grid-template-columns:minmax(0,1.3fr) 170px minmax(0,1fr) 40px;gap:10px;margin-bottom:10px;align-items:center}
+.hint{font-size:12.5px;color:var(--ink-3);margin-top:6px}
+
+/* 详情整页 */
+.overlay{position:fixed;inset:0;background:rgba(28,25,23,.44);backdrop-filter:blur(2px);z-index:50;display:flex;animation:fade .2s var(--ease) both}
+.overlay.full{padding:0;align-items:flex-start;overflow-y:auto}
+@keyframes fade{from{opacity:0}to{opacity:1}}
+@keyframes pop{from{opacity:0;transform:scale(.98)}to{opacity:1;transform:none}}
+.fullsheet{background:var(--bg);width:100%;min-height:100vh;display:flex;flex-direction:column;animation:pop .22s var(--ease) both}
+.sheet-head{display:flex;align-items:center;gap:12px;padding:12px 22px;border-bottom:1px solid var(--line);background:var(--surface);position:sticky;top:0;z-index:2}
+.sheet-head h3{font-size:15.5px}
+.sheet-body{flex:0 0 auto;min-height:calc(100vh - 62px);overflow:visible;padding:20px 22px 48px}
+.sheet-grid{display:grid;grid-template-columns:minmax(0,1fr) 330px;gap:24px;align-items:start}
+.sheet-main{min-width:0}
+.sheet-side{position:sticky;top:78px}
+.side-card{background:var(--surface);border:1px solid var(--line);border-radius:var(--r-lg);padding:16px;box-shadow:var(--shadow-2)}
+.side-card h3{font-size:14px;margin:0 0:14px;letter-spacing:.06em}
+.meta-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px 20px}
+.meta-grid .k{display:block;font-size:12px;color:var(--ink-3);letter-spacing:.08em;margin-bottom:1px}
+.meta-grid .v{font-size:14.5px}
+.flow{display:flex;align-items:center;gap:8px;padding:16px 20px;flex-wrap:wrap}
+.flow-step{display:flex;align-items:center;gap:8px;font-size:13.5px}
+.flow-dot{width:26px;height:26px;border-radius:50%;display:grid;place-items:center;font-size:12px;font-family:var(--font-num);font-weight:600;background:var(--c-ok);color:var(--c-ok-ink)}
+.flow-dot.now{background:var(--c-wait);color:var(--c-wait-ink)}
+.flow-dot.todo{background:var(--surface-2);color:var(--ink-3);border:1px solid var(--line-strong)}
+.flow-line{width:34px;height:1px;background:var(--line-strong)}
+.file-list{display:grid;gap:8px;margin-top:10px}
+.file-item{display:flex;align-items:center;gap:10px;padding:9px 12px;border:1px solid var(--line);border-radius:var(--r-md);background:var(--surface-3);font-size:13.5px}
+.file-ico{width:34px;height:34px;border-radius:6px;display:grid;place-items:center;font-size:10.5px;font-weight:700;color:#fff;flex:none}
+.note{border-left:3px solid var(--c-info);background:var(--surface-2);padding:12px 16px;border-radius:0 var(--r-md) var(--r-md) 0;font-size:13.5px;color:var(--ink-2)}
+.empty{padding:46px 20px;text-align:center;color:var(--ink-3)}
+
+/* 图表条 */
+.chart-row{display:grid;grid-template-columns:96px minmax(0,1fr) 92px;gap:12px;align-items:center;margin-bottom:10px;font-size:13.5px}
+.chart-track{height:22px;background:var(--surface-2);border-radius:6px;overflow:hidden}
+.chart-fill{height:100%;border-radius:6px}
+.legend{display:flex;gap:16px;flex-wrap:wrap;font-size:13px;color:var(--ink-2);margin-top:10px}
+.legend i{display:inline-block;width:12px;height:12px;border-radius:3px;margin-right:6px;vertical-align:-1px}
+
+/* Toast */
+.toast-wrap{position:fixed;right:22px;bottom:22px;z-index:99;display:grid;gap:10px}
+.toast{display:flex;align-items:center;gap:9px;background:var(--surface);border:1px solid var(--line);border-left:3px solid var(--brand);border-radius:var(--r-md);padding:11px 16px;box-shadow:var(--shadow-2);font-size:14px;animation:pop .2s var(--ease) both}
+.toast.ok{border-left-color:var(--c-ok-ink)}
+.toast.err{border-left-color:var(--c-danger-ink)}
+.sr-only{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}
+/* 二级菜单缩进 */
+.nav.sub{padding-left:34px;font-size:13.5px;min-height:38px}
+.nav.sub .dot{width:6px;height:6px}
+/* 顶栏当前用户标签 */
+.who{font-size:13px;color:var(--ink-2);background:var(--surface-2);border:1px solid var(--line);border-radius:999px;padding:5px 14px}
+.who b{font-weight:650;color:var(--ink)}
+
+/* 审批流配置：列宽固定，下拉完整显示、金额框收窄 */
+.flow-grid th:nth-child(1){width:118px}
+.flow-grid th:nth-child(2){width:118px}
+.flow-grid th:nth-child(3){width:110px}
+.flow-grid th:nth-child(4){width:110px}
+.flow-grid th:nth-child(7){width:78px}
+.flow-grid td select{width:100%;min-width:112px;padding:7px 10px;min-height:38px;font-size:13.5px}
+.flow-grid td input[type=number]{width:92px;text-align:right;padding:7px 10px;min-height:38px;font-size:13.5px}
+
+/* ============================================================
+   登录页：深墨蓝品牌面板（左） + 浅色表单区（右）强对比
+   ============================================================ */
+.login-wrap{position:fixed;inset:0;z-index:200;display:grid;grid-template-columns:1.02fr 1fr;background:var(--bg);animation:fade .3s var(--ease) both}
+.login-brand{position:relative;background:#15253F;color:#fff;padding:54px 58px;display:flex;flex-direction:column;justify-content:space-between;overflow:hidden}
+.login-brand::before{content:"";position:absolute;inset:0;pointer-events:none;
+  background:repeating-linear-gradient(0deg,transparent,transparent 39px,rgba(255,255,255,.055) 39px,rgba(255,255,255,.055) 40px),
+             repeating-linear-gradient(90deg,transparent,transparent 39px,rgba(255,255,255,.055) 39px,rgba(255,255,255,.055) 40px)}
+.login-brand::after{content:"";position:absolute;right:-90px;bottom:-90px;width:340px;height:340px;border-radius:50%;
+  background:radial-gradient(circle at 32% 32%,rgba(216,166,87,.24),transparent 66%)}
+.login-brand>*{position:relative}
+.login-logo{display:flex;align-items:center;gap:12px}
+.login-mark{width:38px;height:38px;border-radius:11px;background:#D8A657;color:#15253F;display:grid;place-items:center;font-size:19px;font-weight:700;font-family:var(--font-num)}
+.login-logo .n{font-size:16px;font-weight:650;letter-spacing:.06em}
+.login-logo .s{font-size:11px;color:rgba(255,255,255,.55);letter-spacing:.22em}
+.login-title{font-size:40px;line-height:1.16;letter-spacing:-.02em;font-weight:650;margin-top:auto}
+.login-gold{width:54px;height:3px;background:#D8A657;margin:18px 0 22px}
+.login-desc{font-size:14.5px;color:rgba(255,255,255,.78);line-height:1.75;max-width:420px}
+.login-points{display:grid;gap:12px;margin:26px 0 0;font-size:14px;color:rgba(255,255,255,.8);line-height:1.6}
+.login-points div{display:flex;gap:10px;align-items:flex-start}
+.login-points i{width:6px;height:6px;border-radius:2px;background:#D8A657;margin-top:9px;flex:none}
+.login-points b{color:#fff;font-weight:600}
+.login-stats{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px;border-top:1px solid rgba(255,255,255,.16);padding-top:20px;margin-top:auto}
+.login-stats .v{font-family:var(--font-num);font-size:21px;font-weight:600}
+.login-stats .k{font-size:12px;color:rgba(255,255,255,.58);letter-spacing:.04em}
+.login-form{display:flex;align-items:center;justify-content:center;padding:48px 56px;background:var(--bg)}
+.login-box{width:100%;max-width:404px}
+.login-box h2{font-size:25px;letter-spacing:.01em}
+.login-box .sub{color:var(--ink-3);font-size:13.5px;margin-top:6px}
+.role-cards{display:grid;gap:12px;margin:24px 0 20px}
+.role-card{border:1.5px solid var(--line-strong);border-radius:var(--r-lg);padding:14px 16px;cursor:pointer;display:flex;gap:13px;align-items:center;background:var(--surface);transition:all var(--dur) var(--ease);min-height:78px}
+.role-card:hover{border-color:var(--brand)}
+.role-card.on{border-color:var(--brand);background:var(--brand-soft);box-shadow:var(--shadow-1)}
+.role-avatar{width:42px;height:42px;border-radius:12px;display:grid;place-items:center;font-size:15px;font-weight:700;color:#fff;flex:none}
+.role-card .n{font-size:15px;font-weight:650}
+.role-card .d{font-size:12.5px;color:var(--ink-3)}
+.login-tip{font-size:12.5px;color:var(--ink-3);margin-top:14px;line-height:1.65}
+@media (max-width:900px){
+  .login-wrap{grid-template-columns:1fr}
+  .login-brand{display:none}
+  .login-form{padding:36px 24px}
+}
+@media (max-width:1080px){
+  .shell{grid-template-columns:1fr}
+  .side{display:none}
+  .stats{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .sheet-grid{grid-template-columns:minmax(0,1fr)}
+  .sheet-side{position:static}
+  .meta-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .item-row{grid-template-columns:minmax(0,1fr) 140px}
+}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style>
+</head>
+<body>
+<div class="atmos"></div>
+<div class="shell">
+  <aside class="side">
+    <div class="brand">
+      <span class="brand-mark">¥</span>
+      <div><div class="brand-name">费用报销系统</div><div class="brand-sub">DEMO</div></div>
+    </div>
+    <div id="nav"></div>
+    <div class="side-foot" id="side-foot"></div>
+  </aside>
+  <main class="main">
+    <div class="topbar">
+      <div><h1 id="page-title">工作台</h1><div class="sub" id="page-sub"></div></div>
+      <div class="spacer"></div>
+      <span class="who" id="who"></span>
+      <button class="btn btn-ghost btn-sm" onclick="logout()">退出登录</button>
+    </div>
+    <div id="view"></div>
+  </main>
+</div>
+<div id="overlay-root"></div>
+<div id="login-root"></div>
+<div class="toast-wrap" id="toast-wrap"></div>
+
+<script>
+/* ============================================================
+   演示数据（仿真，全部内置，离线可用）
+   ============================================================ */
+const DEMO = {
+  users: {
+    boss: { name: '周明远', role: 'boss', title: '总经理', dept: '总经办' },
+    cw:   { name: '王芳',   role: 'finance', title: '财务主管', dept: '财务部' },
+    cashier: { name: '刘敏', role: 'cashier', title: '出纳', dept: '财务部' }
+  },
+  staff: ['Winnie', '陈静', '李娜', '张伟', '周敏'],
+  suppliers: [
+    { name: '深圳市嘉禾纸品', bank: '招商银行深圳分行', account: '7559 2201 8856 4012', type: 'company', method: 'account' },
+    { name: '广州网乐科技',   bank: '中国银行广州天河支行', account: '6217 8802 0012 3391', type: 'company', method: 'account' },
+    { name: '东莞市恒昌包装', bank: '工商银行东莞分行', account: '2011 0432 1900 7788', type: 'company', method: 'account' },
+    { name: '佛山顺德五金',   bank: '建设银行佛山顺德支行', account: '4401 6677 2200 1109', type: 'company', method: 'account' },
+    { name: '义乌小商品直供', bank: '支付宝企业账户', account: '138****8820', type: 'company', method: 'qr' }
+  ],
+  payees: [
+    { name: 'Winnie', account: '6222 0210 3388 7766', bank: '招商银行' },
+    { name: '陈静',   account: '6217 0033 2211 0099', bank: '中国银行' },
+    { name: '李娜',   account: '6228 4810 2299 3311', bank: '农业银行' },
+    { name: '张伟',   account: '6212 2602 0011 4455', bank: '工商银行' },
+    { name: '周敏',   account: '6230 5802 1177 6633', bank: '建设银行' }
+  ],
+  payAccounts: ['中国银行转账', '招商银行转账', '支付宝', '微信支付', '现金', '信用卡代付-招总'],
+  flowConfig: [
+    { id: 1, type: 'expense',  settlement: '',        min: 0,     max: 2000,  nodes: ['finance', 'cashier'], desc: '小额报销：财务直审' },
+    { id: 2, type: 'expense',  settlement: '',        min: 2000,  max: null,  nodes: ['boss', 'finance', 'cashier'], desc: '大额报销：老板 → 财务 → 出纳' },
+    { id: 3, type: 'purchase', settlement: 'cash',    min: 0,     max: 5000,  nodes: ['finance', 'cashier'], desc: '现款小额：财务直审' },
+    { id: 4, type: 'purchase', settlement: 'cash',    min: 5000,  max: null,  nodes: ['boss', 'finance', 'cashier'], desc: '现款大额：老板 → 财务 → 出纳' },
+    { id: 5, type: 'purchase', settlement: 'monthly', min: 0,     max: 20000, nodes: ['finance', 'cashier'], desc: '月结小额：财务直审' },
+    { id: 6, type: 'purchase', settlement: 'monthly', min: 20000, max: null,  nodes: ['boss', 'finance', 'cashier'], desc: '月结大额：老板 → 财务 → 出纳' },
+    { id: 7, type: 'purchase', settlement: 'weekly',  min: 0,     max: 10000, nodes: ['finance', 'cashier'], desc: '周结小额：财务直审' },
+    { id: 8, type: 'purchase', settlement: 'weekly',  min: 10000, max: null,  nodes: ['boss', 'finance', 'cashier'], desc: '周结大额：老板 → 财务 → 出纳' }
+  ]
+};
+
+const NODE_LABEL = { boss: '老板审批', finance: '财务复核', cashier: '出纳付款' };
+const STATUS_META = {
+  draft:           { label: '草稿',       cls: 'mute' },
+  pending_boss:    { label: '待老板审批', cls: 'wait' },
+  pending_finance: { label: '待财务复核', cls: 'info' },
+  approved:        { label: '已通过待付', cls: 'ok' },
+  paid:            { label: '已付款',     cls: 'ok' },
+  rejected:        { label: '已驳回',     cls: 'danger' }
+};
+const SETTLEMENT_LABEL = { monthly: '月结', cash: '现款', weekly: '周结' };
+
+function seedReports() {
+  const R = [];
+  const add = (o) => R.push(o);
+  // 采购请款单
+  add({ id: 1, no: 'QK-20261021-0001', type: 'purchase', biz: 'ecommerce', applicant: 'Winnie', dept: '电商', supplier: '深圳市嘉禾纸品', settlement: 'monthly', date: '2026-10-21',
+    items: [{ p: '包装纸箱采购', a: 12400, r: '10 月第三批' }, { p: '封箱胶带', a: 3600, r: '' }, { p: '物流运费', a: 2400, r: '顺丰到付' }],
+    status: 'pending_boss', flow: [{ n: 'boss', s: 'now' }, { n: 'finance', s: 'todo' }, { n: 'cashier', s: 'todo' }],
+    atts: [{ n: '嘉禾纸品-10月对账单.pdf', s: '480 KB', t: 'PDF' }, { n: '入库单.jpg', s: '1.2 MB', t: 'JPG' }] });
+  add({ id: 2, no: 'QK-20261021-0002', type: 'purchase', biz: 'channel', applicant: '李娜', dept: '渠道', supplier: '广州网乐科技', settlement: 'weekly', date: '2026-10-21',
+    items: [{ p: '渠道推广服务费', a: 8600, r: '10 月第三周' }, { p: '物料制作', a: 2200, r: '' }],
+    status: 'pending_finance', flow: [{ n: 'finance', s: 'now' }, { n: 'cashier', s: 'todo' }],
+    atts: [{ n: '网乐-周结对账单.xlsx', s: '96 KB', t: 'XLSX' }] });
+  add({ id: 3, no: 'QK-20261020-0005', type: 'purchase', biz: 'ecommerce', applicant: '陈静', dept: '电商', supplier: '东莞市恒昌包装', settlement: 'cash', date: '2026-10-20',
+    items: [{ p: '展示架定制', a: 18600, r: '双十一主会场' }, { p: '运费', a: 800, r: '' }],
+    status: 'pending_boss', flow: [{ n: 'boss', s: 'now' }, { n: 'finance', s: 'todo' }, { n: 'cashier', s: 'todo' }],
+    atts: [{ n: '恒昌-报价单.pdf', s: '320 KB', t: 'PDF' }, { n: '合同扫描件.pdf', s: '1.8 MB', t: 'PDF' }] });
+  add({ id: 4, no: 'QK-20261020-0004', type: 'purchase', biz: 'channel', applicant: '张伟', dept: '渠道', supplier: '佛山顺德五金', settlement: 'monthly', date: '2026-10-20',
+    items: [{ p: '五金配件一批', a: 26800, r: '门店维修' }, { p: '工具损耗', a: 1500, r: '' }],
+    status: 'pending_boss', flow: [{ n: 'boss', s: 'now' }, { n: 'finance', s: 'todo' }, { n: 'cashier', s: 'todo' }],
+    atts: [{ n: '顺德-月结单.pdf', s: '260 KB', t: 'PDF' }] });
+  add({ id: 5, no: 'QK-20261019-0002', type: 'purchase', biz: 'ecommerce', applicant: '周敏', dept: '电商', supplier: '义乌小商品直供', settlement: 'cash', date: '2026-10-19',
+    items: [{ p: '赠品采购', a: 4200, r: '满赠活动' }],
+    status: 'approved', flow: [{ n: 'finance', s: 'done', by: '王芳', at: '2026-10-19 16:20' }, { n: 'cashier', s: 'now' }],
+    atts: [{ n: '义乌-收据.jpg', s: '680 KB', t: 'JPG' }] });
+  add({ id: 6, no: 'QK-20261018-0007', type: 'purchase', biz: 'channel', applicant: '李娜', dept: '渠道', supplier: '广州网乐科技', settlement: 'weekly', date: '2026-10-18',
+    items: [{ p: '渠道返点结算', a: 12800, r: 'Q4 第二周' }],
+    status: 'approved', flow: [{ n: 'finance', s: 'done', by: '王芳', at: '2026-10-18 11:05' }, { n: 'cashier', s: 'now' }],
+    atts: [{ n: '返点明细.xlsx', s: '140 KB', t: 'XLSX' }] });
+  add({ id: 7, no: 'QK-20261018-0003', type: 'purchase', biz: 'ecommerce', applicant: 'Winnie', dept: '电商', supplier: '深圳市嘉禾纸品', settlement: 'monthly', date: '2026-10-18',
+    items: [{ p: '包装纸箱采购', a: 24800, r: '10 月第二批' }],
+    status: 'paid', flow: [{ n: 'boss', s: 'done', by: '周明远', at: '2026-10-18 09:40' }, { n: 'finance', s: 'done', by: '王芳', at: '2026-10-18 10:12' }, { n: 'cashier', s: 'done', by: '刘敏', at: '2026-10-18 15:30' }],
+    cashier: { account: '中国银行转账', settlement: 'monthly', at: '2026-10-18 15:30', note: '与月结对账单一致', receipt: '回单-嘉禾-1028.pdf' },
+    atts: [{ n: '嘉禾-月结单.pdf', s: '510 KB', t: 'PDF' }] });
+  add({ id: 8, no: 'QK-20261015-0002', type: 'purchase', biz: 'ecommerce', applicant: '陈静', dept: '电商', supplier: '东莞市恒昌包装', settlement: 'cash', date: '2026-10-15',
+    items: [{ p: '展示架补货', a: 6800, r: '' }],
+    status: 'paid', flow: [{ n: 'finance', s: 'done', by: '王芳', at: '2026-10-15 14:02' }, { n: 'cashier', s: 'done', by: '刘敏', at: '2026-10-15 17:20' }],
+    cashier: { account: '支付宝', settlement: 'cash', at: '2026-10-15 17:20', note: '', receipt: '回单-恒昌-1015.jpg' }, atts: [] });
+  add({ id: 9, no: 'QK-20261014-0001', type: 'purchase', biz: 'channel', applicant: '张伟', dept: '渠道', supplier: '佛山顺德五金', settlement: 'monthly', date: '2026-10-14',
+    items: [{ p: '门店五金配件', a: 15600, r: '' }],
+    status: 'paid', flow: [{ n: 'boss', s: 'done', by: '周明远', at: '2026-10-14 08:55' }, { n: 'finance', s: 'done', by: '王芳', at: '2026-10-14 09:30' }, { n: 'cashier', s: 'done', by: '刘敏', at: '2026-10-14 16:10' }],
+    cashier: { account: '招商银行转账', settlement: 'monthly', at: '2026-10-14 16:10', note: '按合同月结 30 天', receipt: '回单-顺德-1014.pdf' }, atts: [] });
+  add({ id: 10, no: 'QK-20261012-0003', type: 'purchase', biz: 'ecommerce', applicant: '周敏', dept: '电商', supplier: '义乌小商品直供', settlement: 'cash', date: '2026-10-12',
+    items: [{ p: '赠品采购', a: 3200, r: '' }],
+    status: 'rejected', flow: [{ n: 'finance', s: 'done', by: '王芳', at: '2026-10-12 15:40', comment: '缺少入库单，请补充后重新提交' }],
+    rejectReason: '缺少入库单，请补充后重新提交', atts: [] });
+
+  // 费用报销单
+  add({ id: 11, no: 'BX-20261021-0009', type: 'expense', biz: 'channel', applicant: '李娜', dept: '渠道', payee: '李娜', date: '2026-10-21',
+    items: [{ p: '差旅费', a: 2860, r: '广州出差 2 天' }, { p: '客户招待', a: 1240, r: '重点客户' }],
+    status: 'pending_boss', flow: [{ n: 'boss', s: 'now' }, { n: 'finance', s: 'todo' }, { n: 'cashier', s: 'todo' }],
+    atts: [{ n: '高铁票.jpg', s: '820 KB', t: 'JPG' }, { n: '住宿发票.pdf', s: '360 KB', t: 'PDF' }] });
+  add({ id: 12, no: 'BX-20261021-0004', type: 'expense', biz: 'ecommerce', applicant: '周敏', dept: '电商', payee: '周敏', date: '2026-10-21',
+    items: [{ p: '办公用品', a: 860, r: '' }],
+    status: 'pending_finance', flow: [{ n: 'finance', s: 'now' }, { n: 'cashier', s: 'todo' }], atts: [{ n: '发票.jpg', s: '240 KB', t: 'JPG' }] });
+  add({ id: 13, no: 'BX-20261020-0008', type: 'expense', biz: 'ecommerce', applicant: 'Winnie', dept: '电商', payee: 'Winnie', date: '2026-10-20',
+    items: [{ p: '快递费', a: 1680, r: '10 月累计' }, { p: '展会物料', a: 2400, r: '' }],
+    status: 'pending_finance', flow: [{ n: 'finance', s: 'now' }, { n: 'cashier', s: 'todo' }], atts: [{ n: '快递对账单.xlsx', s: '88 KB', t: 'XLSX' }] });
+  add({ id: 14, no: 'BX-20261020-0002', type: 'expense', biz: 'channel', applicant: '张伟', dept: '渠道', payee: '张伟', date: '2026-10-20',
+    items: [{ p: '差旅费', a: 4200, r: '深圳出差' }],
+    status: 'approved', flow: [{ n: 'boss', s: 'done', by: '周明远', at: '2026-10-20 10:15' }, { n: 'finance', s: 'done', by: '王芳', at: '2026-10-20 11:40' }, { n: 'cashier', s: 'now' }],
+    atts: [{ n: '机票行程单.pdf', s: '410 KB', t: 'PDF' }] });
+  add({ id: 15, no: 'BX-20261019-0006', type: 'expense', biz: 'ecommerce', applicant: '陈静', dept: '电商', payee: '陈静', date: '2026-10-19',
+    items: [{ p: '客户招待', a: 1980, r: '' }],
+    status: 'paid', flow: [{ n: 'finance', s: 'done', by: '王芳', at: '2026-10-19 09:20' }, { n: 'cashier', s: 'done', by: '刘敏', at: '2026-10-19 14:05' }],
+    cashier: { account: '微信支付', settlement: '', at: '2026-10-19 14:05', note: '', receipt: '回单-招待-1019.jpg' }, atts: [{ n: '餐饮发票.jpg', s: '520 KB', t: 'JPG' }] });
+  add({ id: 16, no: 'BX-20261017-0003', type: 'expense', biz: 'channel', applicant: '李娜', dept: '渠道', payee: '李娜', date: '2026-10-17',
+    items: [{ p: '差旅费', a: 3150, r: '东莞巡店' }],
+    status: 'paid', flow: [{ n: 'boss', s: 'done', by: '周明远', at: '2026-10-17 08:30' }, { n: 'finance', s: 'done', by: '王芳', at: '2026-10-17 09:10' }, { n: 'cashier', s: 'done', by: '刘敏', at: '2026-10-17 15:45' }],
+    cashier: { account: '中国银行转账', settlement: '', at: '2026-10-17 15:45', note: '', receipt: '回单-差旅-1017.pdf' }, atts: [] });
+  add({ id: 17, no: 'BX-20261016-0001', type: 'expense', biz: 'ecommerce', applicant: 'Winnie', dept: '电商', payee: 'Winnie', date: '2026-10-16',
+    items: [{ p: '办公用品', a: 1240, r: '' }],
+    status: 'rejected', flow: [{ n: 'finance', s: 'done', by: '王芳', at: '2026-10-16 16:30', comment: '发票抬头有误，请重开' }], rejectReason: '发票抬头有误，请重开', atts: [] });
+  add({ id: 18, no: 'BX-20261022-0002', type: 'expense', biz: 'ecommerce', applicant: '周敏', dept: '电商', payee: '周敏', date: '2026-10-22',
+    items: [{ p: '快递费', a: 960, r: '' }], status: 'draft', flow: [], atts: [] });
+  add({ id: 19, no: 'QK-20261022-0003', type: 'purchase', biz: 'channel', applicant: '李娜', dept: '渠道', supplier: '广州网乐科技', settlement: 'weekly', date: '2026-10-22',
+    items: [{ p: '渠道推广服务费', a: 11800, r: '10 月第四周' }], status: 'draft', flow: [], atts: [] });
+  return R;
+}
+
+function seedNotifications() {
+  return [
+    { t: '2026-10-21 09:12', title: 'QK-20261021-0001 待你审批', body: 'Winnie 提交采购请款 ¥18,400（月结）', read: false, to: 'boss' },
+    { t: '2026-10-21 10:05', title: 'BX-20261021-0009 待你审批', body: '李娜 提交费用报销 ¥4,100', read: false, to: 'boss' },
+    { t: '2026-10-21 11:30', title: 'QK-20261021-0002 待财务复核', body: '李娜 提交采购请款 ¥10,800（周结）', read: false, to: 'cw' },
+    { t: '2026-10-20 15:20', title: 'QK-20261020-0005 已通过审批', body: '等待出纳付款 ¥4,200', read: true, to: 'cw' },
+    { t: '2026-10-18 15:30', title: 'QK-20261018-0003 已付款', body: '付款账户：中国银行转账（月结）', read: true, to: 'boss' }
+  ];
+}
+function seedLogs() {
+  return [
+    { t: '2026-10-21 09:12', u: 'Winnie',  a: '提交单据', d: 'QK-20261021-0001 采购请款 ¥18,400' },
+    { t: '2026-10-20 10:15', u: '周明远',  a: '审批通过', d: 'BX-20261020-0002 老板审批节点' },
+    { t: '2026-10-20 11:40', u: '王芳',    a: '审批通过', d: 'BX-20261020-0002 财务复核节点' },
+    { t: '2026-10-19 14:05', u: '刘敏',    a: '登记付款', d: 'BX-20261019-0006 微信支付 ¥1,980' },
+    { t: '2026-10-18 15:30', u: '刘敏',    a: '登记付款', d: 'QK-20261018-0003 中国银行转账 ¥24,800' },
+    { t: '2026-10-16 16:30', u: '王芳',    a: '驳回',     d: 'BX-20261016-0001 发票抬头有误' },
+    { t: '2026-10-15 17:20', u: '刘敏',    a: '登记付款', d: 'QK-20261015-0002 支付宝 ¥6,800' }
+  ];
+}
+
+/* ============================================================
+   状态
+   ============================================================ */
+const PAGES = [
+  { k: 'home',    label: '工作台',     dot: 'var(--brand)' },
+  { k: 'todo',    label: '待我审批',   dot: 'var(--c-purchase)' },
+  { k: 'all',     label: '全部单据',   dot: 'var(--c-expense)', children: [
+    { k: 'purchase', label: '采购请款单', dot: 'var(--c-purchase)' },
+    { k: 'expense',  label: '费用报销单', dot: 'var(--c-expense)' }
+  ]},
+  { k: 'cashier', label: '出纳工作台', dot: 'var(--c-amount)',   only: ['cw'] },
+  { k: 'report',  label: '报表统计',   dot: 'var(--c-info)',     only: ['cw'] },
+  { k: 'flow',    label: '审批流配置', dot: 'var(--c-neutral)' },
+  { k: 'notice',  label: '通知与日志', dot: 'var(--c-wait)' }
+];
+
+let S = {
+  stage: 'login',
+  loginRole: 'boss',
+  role: 'boss',
+  page: 'home',
+  reports: seedReports(),
+  notifications: seedNotifications(),
+  logs: seedLogs(),
+  flow: JSON.parse(JSON.stringify(DEMO.flowConfig)),
+  detailId: null,
+  payId: null,
+  filter: 'all'
+};
+
+const money = (n) => Number(n).toLocaleString('zh-CN', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+const total = (r) => r.items.reduce((s, i) => s + i.a, 0);
+const me = () => DEMO.users[S.role];
+const isBoss = () => S.role === 'boss';
+const myNode = () => (S.role === 'boss' ? 'boss' : 'finance');
+const statusTag = (s) => { const m = STATUS_META[s]; return `<span class="tag ${m.cls}">${m.label}</span>`; };
+const typeTag = (t) => `<span class="tag ${t === 'purchase' ? 'purchase' : 'expense'}">${t === 'purchase' ? '采购请款' : '费用报销'}</span>`;
+
+function pendingFor() {
+  const node = myNode();
+  const st = node === 'boss' ? 'pending_boss' : 'pending_finance';
+  return S.reports.filter((r) => r.status === st);
+}
+function esc(s) { return String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c])); }
+
+/* ============================================================
+   渲染
+   ============================================================ */
+function pagesForRole() {
+  return PAGES
+    .filter((p) => !p.only || p.only.includes(S.role))
+    .map((p) => (p.k === 'home' ? { ...p, label: isBoss() ? '经营驾驶舱' : '财务工作台' } : p));
+}
+
+function renderNav() {
+  const pend = pendingFor().length;
+  let html = '';
+  pagesForRole().forEach((p) => {
+    const badge = p.k === 'todo' && pend ? `<span class="badge">${pend}</span>` : '';
+    html += `<button class="nav${S.page === p.k ? ' on' : ''}" onclick="go('${p.k}')"><span class="dot" style="background:${p.dot}"></span>${p.label}${badge}</button>`;
+    (p.children || []).forEach((c) => {
+      const on = S.page === c.k || (S.page === p.k && S.filter === c.k);
+      html += `<button class="nav sub${on ? ' on' : ''}" onclick="go('${c.k}')"><span class="dot" style="background:${c.dot}"></span>${c.label}</button>`;
+    });
+  });
+  document.getElementById('nav').innerHTML = html;
+  const u = me();
+  document.getElementById('side-foot').textContent = `${u.name}（${u.title}）· ${u.dept}`;
+  const w = document.getElementById('who');
+  if (w) w.innerHTML = `<b>${u.name}</b> · ${isBoss() ? '老板' : '财务'}`;
+}
+
+function renderHome() {
+  const rs = S.reports;
+  const paid = rs.filter((r) => r.status === 'paid');
+  const pending = pendingFor();
+  const waitPay = rs.filter((r) => r.status === 'approved');
+  const sum = (a) => a.reduce((s, r) => s + total(r), 0);
+  const monthPaid = sum(paid);
+  const purchaseSum = sum(rs.filter((r) => r.type === 'purchase'));
+  const expenseSum = sum(rs.filter((r) => r.type === 'expense'));
+  const byDept = ['电商', '渠道'].map((d) => ({ d, v: sum(rs.filter((r) => r.dept === d)) }));
+  const maxDept = Math.max(...byDept.map((b) => b.v), 1);
+
+  const bySet = ['monthly', 'cash', 'weekly'].map((s) => ({ d: SETTLEMENT_LABEL[s], v: sum(rs.filter((r) => r.settlement === s)) }));
+  const bars = isBoss() ? byDept : bySet;
+  const maxBar = Math.max(...bars.map((b) => b.v), 1);
+
+  document.getElementById('page-title').textContent = isBoss() ? '经营驾驶舱' : '财务工作台';
+  document.getElementById('page-sub').textContent = `${me().name}，欢迎回来 · 演示数据截至 2026-10-22`;
+
+  document.getElementById('view').innerHTML = `
+    <div class="stats">
+      ${isBoss() ? `
+      <div class="stat wait"><div class="k">待我终审</div><div class="v">${pending.length}</div><div class="hint">大额单据，老板把关</div></div>
+      <div class="stat amount"><div class="k">累计已付款</div><div class="v">${(monthPaid / 10000).toFixed(1)}<span style="font-size:15px"> 万</span></div><div class="hint">共 ${paid.length} 单</div></div>
+      <div class="stat purchase"><div class="k">采购请款</div><div class="v">${(purchaseSum / 10000).toFixed(1)}<span style="font-size:15px"> 万</span></div><div class="hint">${rs.filter((r) => r.type === 'purchase').length} 单</div></div>
+      <div class="stat expense"><div class="k">费用报销</div><div class="v">${(expenseSum / 10000).toFixed(1)}<span style="font-size:15px"> 万</span></div><div class="hint">${rs.filter((r) => r.type === 'expense').length} 单</div></div>` : `
+      <div class="stat wait"><div class="k">待财务复核</div><div class="v">${pending.length}</div><div class="hint">复核节点</div></div>
+      <div class="stat amount"><div class="k">待付款金额</div><div class="v">${(sum(waitPay) / 10000).toFixed(1)}<span style="font-size:15px"> 万</span></div><div class="hint">${waitPay.length} 单待出款</div></div>
+      <div class="stat purchase"><div class="k">已付款金额</div><div class="v">${(monthPaid / 10000).toFixed(1)}<span style="font-size:15px"> 万</span></div><div class="hint">共 ${paid.length} 单</div></div>
+      <div class="stat expense"><div class="k">在库单据</div><div class="v">${rs.length}</div><div class="hint">含草稿与驳回</div></div>`}
+    </div>
+
+    <div class="panel">
+      <div class="panel-head"><h2>${isBoss() ? '部门支出分布' : '结算方式分布'}</h2><span class="meta">按单据金额汇总</span></div>
+      <div class="panel-body">
+        ${bars.map((b) => `
+          <div class="chart-row">
+            <span>${b.d}</span>
+            <span class="chart-track"><span class="chart-fill" style="width:${(b.v / maxBar) * 100}%;background:${isBoss() ? (b.d === '电商' ? 'var(--c-purchase)' : 'var(--c-expense)') : 'var(--c-amount)'}"></span></span>
+            <span class="num td-right">¥ ${money(b.v)}</span>
+          </div>`).join('')}
+        <div class="legend">${isBoss()
+          ? '<span><i style="background:var(--c-purchase)"></i>电商</span><span><i style="background:var(--c-expense)"></i>渠道</span>'
+          : '<span><i style="background:var(--c-amount)"></i>月结 / 现款 / 周结</span>'}</div>
+      </div>
+    </div>
+
+    <div class="panel">
+      <div class="panel-head"><h2>待办事项</h2><span class="meta">${pending.length + waitPay.length} 项</span></div>
+      <div class="panel-body" style="padding:0">
+        <table>
+          <thead><tr><th>单号</th><th>类型</th><th>申请人</th><th>摘要</th><th>状态</th><th class="td-right">金额</th></tr></thead>
+          <tbody>
+            ${pending.concat(waitPay).slice(0, 6).map((r) => `
+              <tr class="click" onclick="openDetail(${r.id})">
+                <td><span class="bar" style="background:${r.type === 'purchase' ? 'var(--c-purchase)' : 'var(--c-expense)'}"></span><span class="no">${r.no}</span></td>
+                <td>${typeTag(r.type)}</td>
+                <td class="strong">${r.applicant}</td>
+                <td>${r.type === 'purchase' ? '供应商：' + r.supplier : '用途：' + r.items[0].p}</td>
+                <td>${statusTag(r.status)}</td>
+                <td class="td-right"><span class="amt lead">${money(total(r))}</span></td>
+              </tr>`).join('') || '<tr><td colspan="6"><div class="empty">暂无待办</div></td></tr>'}
+          </tbody>
+        </table>
+      </div>
+    </div>
+    <div class="note">${isBoss()
+      ? '老板视角：只看关键数字 —— 待我终审几单、已付了多少钱、钱花在哪个部门。点左侧「待我审批」进入大额单据终审，付款由财务执行。'
+      : '财务视角：复核、付款、对账一屏打尽 —— 待复核与待付款分列，结算方式分布一眼看清资金结构。出纳工作台可直接登记付款并上传回单。'}</div>`;
+}
+
+function renderTodo() {
+  const list = pendingFor();
+  document.getElementById('page-title').textContent = '待我审批';
+  document.getElementById('page-sub').textContent = isBoss()
+    ? '大额单据由老板终审：金额超过阈值的采购请款与费用报销'
+    : '财务复核节点：老板已通过或小额直审的单据';
+  document.getElementById('view').innerHTML = `
+    <div class="panel">
+      <div class="panel-head"><h2>待处理单据</h2><span class="meta">${list.length} 单</span><div class="spacer"></div><span class="meta">点击任意一行查看整页详情</span></div>
+      <div class="panel-body" style="padding:0">
+        <table>
+          <thead><tr><th>单号</th><th>类型</th><th>申请人</th><th>部门</th><th>结算</th><th>状态</th><th class="td-right">金额</th></tr></thead>
+          <tbody>
+            ${list.map((r) => `
+              <tr class="click" onclick="openDetail(${r.id})">
+                <td><span class="bar" style="background:${r.type === 'purchase' ? 'var(--c-purchase)' : 'var(--c-expense)'}"></span><span class="no">${r.no}</span></td>
+                <td>${typeTag(r.type)}</td>
+                <td class="strong">${r.applicant}</td>
+                <td>${r.dept}</td>
+                <td>${r.settlement ? SETTLEMENT_LABEL[r.settlement] : '—'}</td>
+                <td>${statusTag(r.status)}</td>
+                <td class="td-right"><span class="amt lead">${money(total(r))}</span></td>
+              </tr>`).join('') || '<tr><td colspan="7"><div class="empty">当前角色没有待审批单据</div></td></tr>'}
+          </tbody>
+        </table>
+      </div>
+    </div>`;
+}
+
+function renderAll() {
+  const f = S.filter;
+  const list = f === 'all' ? S.reports : S.reports.filter((r) => r.type === f);
+  const fLabel = f === 'purchase' ? ' · 采购请款' : f === 'expense' ? ' · 费用报销' : '';
+  document.getElementById('page-title').textContent = '全部单据' + fLabel;
+  document.getElementById('page-sub').textContent = '管理者视角：所有用户提交的单据，点击任意一行查看明细';
+  const tabs = [['all', '全部'], ['purchase', '采购请款'], ['expense', '费用报销']];
+  document.getElementById('view').innerHTML = `
+    <div class="panel">
+      <div class="panel-head">
+        <div style="display:flex;gap:6px">
+          ${tabs.map(([k, l]) => `<button class="btn ${f === k ? 'btn-primary' : 'btn-ghost'} btn-sm" onclick="setFilter('${k}')">${l}</button>`).join('')}
+        </div>
+        <div class="spacer"></div>
+        <button class="btn btn-ghost btn-sm" onclick="goNew('expense')">＋ 费用报销单</button>
+        <button class="btn btn-primary btn-sm" onclick="goNew('purchase')">＋ 采购请款单</button>
+      </div>
+      <div class="panel-body" style="padding:0">
+        <table>
+          <thead><tr><th>单号</th><th>类型</th><th>申请人</th><th>部门</th><th>日期</th><th>状态</th><th class="td-right">金额</th></tr></thead>
+          <tbody>
+            ${list.map((r) => `
+              <tr class="click" onclick="openDetail(${r.id})">
+                <td><span class="bar" style="background:${r.type === 'purchase' ? 'var(--c-purchase)' : 'var(--c-expense)'}"></span><span class="no">${r.no}</span></td>
+                <td>${typeTag(r.type)}</td>
+                <td class="strong">${r.applicant}</td>
+                <td>${r.dept}</td>
+                <td class="num" style="color:var(--ink-3)">${r.date}</td>
+                <td>${statusTag(r.status)}</td>
+                <td class="td-right"><span class="amt">${money(total(r))}</span></td>
+              </tr>`).join('')}
+          </tbody>
+        </table>
+      </div>
+    </div>`;
+}
+
+function renderCashier() {
+  const wait = S.reports.filter((r) => r.status === 'approved');
+  const paid = S.reports.filter((r) => r.status === 'paid');
+  document.getElementById('page-title').textContent = '出纳工作台';
+  document.getElementById('page-sub').textContent = isBoss()
+    ? '老板视角：可查看付款进度，实际付款由出纳执行'
+    : '财务/出纳视角：登记付款并上传回单';
+  document.getElementById('view').innerHTML = `
+    <div class="panel">
+      <div class="panel-head"><h2>待付款</h2><span class="meta">${wait.length} 单</span></div>
+      <div class="panel-body" style="padding:0">
+        <table>
+          <thead><tr><th>单号</th><th>类型</th><th>申请人</th><th>状态</th><th>结算方式</th><th class="td-right">金额</th><th></th></tr></thead>
+          <tbody>
+            ${wait.map((r) => `
+              <tr>
+                <td><span class="bar" style="background:${r.type === 'purchase' ? 'var(--c-purchase)' : 'var(--c-expense)'}"></span><span class="no">${r.no}</span></td>
+                <td>${typeTag(r.type)}</td>
+                <td class="strong">${r.applicant}</td>
+                <td><span class="tag wait">待支付</span></td>
+                <td>${r.settlement ? SETTLEMENT_LABEL[r.settlement] : '—'}</td>
+                <td class="td-right"><span class="amt lead">${money(total(r))}</span></td>
+                <td class="td-right">${isBoss()
+                  ? '<button class="btn btn-ghost btn-sm" disabled title="出纳角色可操作">仅查看</button>'
+                  : `<button class="btn btn-gold btn-sm" onclick="openPay(${r.id})">登记付款</button>`}</td>
+              </tr>`).join('') || '<tr><td colspan="7"><div class="empty">暂无待付款单据</div></td></tr>'}
+          </tbody>
+        </table>
+      </div>
+    </div>
+    <div class="panel">
+      <div class="panel-head"><h2>最近已付款</h2><div class="spacer"></div><span class="meta">${paid.length} 单</span></div>
+      <div class="panel-body" style="padding:0">
+        <table>
+          <thead><tr><th>单号</th><th>状态</th><th>申请人</th><th>付款账户</th><th>结算方式</th><th>付款时间</th><th class="td-right">金额</th><th>回单</th></tr></thead>
+          <tbody>
+            ${paid.map((r) => `
+              <tr>
+                <td class="no">${r.no}</td>
+                <td><span class="tag ok">已付款</span></td>
+                <td>${r.applicant}</td>
+                <td>${r.cashier ? r.cashier.account : '—'}</td>
+                <td>${r.cashier && r.cashier.settlement ? SETTLEMENT_LABEL[r.cashier.settlement] : '—'}</td>
+                <td class="num" style="color:var(--ink-3);font-size:12.5px">${r.cashier ? r.cashier.at : '—'}</td>
+                <td class="td-right"><span class="amt">${money(total(r))}</span></td>
+                <td style="color:var(--c-ok-ink);font-size:12.5px">${r.cashier && r.cashier.receipt ? '已上传' : '—'}</td>
+              </tr>`).join('') || '<tr><td colspan="8"><div class="empty">暂无付款记录</div></td></tr>'}
+          </tbody>
+        </table>
+      </div>
+    </div>`;
+}
+
+function renderReport() {
+  const rs = S.reports;
+  const sum = (a) => a.reduce((s, r) => s + total(r), 0);
+  const byType = [['purchase', '采购请款', 'var(--c-purchase)'], ['expense', '费用报销', 'var(--c-expense)']]
+    .map(([t, l, c]) => ({ l, c, v: sum(rs.filter((r) => r.type === t)) }));
+  const bySet = ['monthly', 'cash', 'weekly'].map((s) => ({ l: SETTLEMENT_LABEL[s], v: sum(rs.filter((r) => r.settlement === s)) }));
+  const byStatus = Object.keys(STATUS_META).map((s) => ({ l: STATUS_META[s].label, n: rs.filter((r) => r.status === s).length }));
+  const maxT = Math.max(...byType.map((b) => b.v), 1);
+  const maxS = Math.max(...bySet.map((b) => b.v), 1);
+
+  document.getElementById('page-title').textContent = '报表统计';
+  document.getElementById('page-sub').textContent = '按类型、结算方式与状态汇总，可导出 CSV 供财务对账';
+  document.getElementById('view').innerHTML = `
+    <div class="stats">
+      <div class="stat amount"><div class="k">单据总额</div><div class="v">${(sum(rs) / 10000).toFixed(1)}<span style="font-size:15px"> 万</span></div><div class="hint">${rs.length} 单</div></div>
+      <div class="stat expense"><div class="k">已付款</div><div class="v">${(sum(rs.filter((r) => r.status === 'paid')) / 10000).toFixed(1)}<span style="font-size:15px"> 万</span></div><div class="hint">${rs.filter((r) => r.status === 'paid').length} 单</div></div>
+      <div class="stat wait"><div class="k">审批中</div><div class="v">${rs.filter((r) => r.status.startsWith('pending')).length}</div><div class="hint">老板 + 财务节点</div></div>
+      <div class="stat purchase"><div class="k">待付款</div><div class="v">${(sum(rs.filter((r) => r.status === 'approved')) / 10000).toFixed(1)}<span style="font-size:15px"> 万</span></div><div class="hint">${rs.filter((r) => r.status === 'approved').length} 单</div></div>
+    </div>
+    <div class="panel">
+      <div class="panel-head"><h2>按单据类型</h2><div class="spacer"></div><button class="btn btn-ghost btn-sm" onclick="exportCsv()">导出 CSV</button></div>
+      <div class="panel-body">
+        ${byType.map((b) => `<div class="chart-row"><span>${b.l}</span><span class="chart-track"><span class="chart-fill" style="width:${(b.v / maxT) * 100}%;background:${b.c}"></span></span><span class="num td-right">¥ ${money(b.v)}</span></div>`).join('')}
+      </div>
+    </div>
+    <div class="panel">
+      <div class="panel-head"><h2>按结算方式（采购请款）</h2></div>
+      <div class="panel-body">
+        ${bySet.map((b) => `<div class="chart-row"><span>${b.l}</span><span class="chart-track"><span class="chart-fill" style="width:${(b.v / maxS) * 100}%;background:var(--c-amount)"></span></span><span class="num td-right">¥ ${money(b.v)}</span></div>`).join('')}
+      </div>
+    </div>
+    <div class="panel">
+      <div class="panel-head"><h2>按状态分布</h2></div>
+      <div class="panel-body" style="padding:0">
+        <table><thead><tr><th>状态</th><th class="td-right">单据数</th><th class="td-right">金额</th></tr></thead>
+        <tbody>${byStatus.map((b) => `<tr><td>${b.l}</td><td class="td-right num">${b.n}</td><td class="td-right num">¥ ${money(sum(rs.filter((r) => STATUS_META[r.status].label === b.l)))}</td></tr>`).join('')}</tbody></table>
+      </div>
+    </div>`;
+}
+
+function renderFlow() {
+  document.getElementById('page-title').textContent = '审批流配置';
+  document.getElementById('page-sub').textContent = '按单据类型、结算方式与金额区间决定审批链，可随时调整';
+  document.getElementById('view').innerHTML = `
+    <div class="panel">
+      <div class="panel-head"><h2>审批规则</h2><div class="spacer"></div>
+        <button class="btn btn-ghost btn-sm" onclick="addRule()">新增规则</button>
+        <button class="btn btn-primary btn-sm" onclick="saveFlow()">保存配置</button></div>
+      <div class="panel-body" style="padding:0">
+        <table class="flow-grid">
+          <thead><tr><th>单据类型</th><th>结算方式</th><th>金额下限</th><th>金额上限</th><th>审批链</th><th>说明</th><th></th></tr></thead>
+          <tbody>
+            ${S.flow.map((r) => `
+              <tr>
+                <td><select onchange="updRule(${r.id},'type',this.value)">
+                  <option value="expense"${r.type === 'expense' ? ' selected' : ''}>费用报销</option>
+                  <option value="purchase"${r.type === 'purchase' ? ' selected' : ''}>采购请款</option></select></td>
+                <td><select onchange="updRule(${r.id},'settlement',this.value)">
+                  <option value=""${r.settlement === '' ? ' selected' : ''}>不限</option>
+                  <option value="monthly"${r.settlement === 'monthly' ? ' selected' : ''}>月结</option>
+                  <option value="cash"${r.settlement === 'cash' ? ' selected' : ''}>现款</option>
+                  <option value="weekly"${r.settlement === 'weekly' ? ' selected' : ''}>周结</option></select></td>
+                <td><input type="number" value="${r.min}" onchange="updRule(${r.id},'min',this.value)" /></td>
+                <td><input type="number" value="${r.max === null ? '' : r.max}" placeholder="不限" onchange="updRule(${r.id},'max',this.value)" /></td>
+                <td>${r.nodes.map((n) => NODE_LABEL[n]).join(' → ')}</td>
+                <td style="color:var(--ink-3)">${r.desc}</td>
+                <td class="td-right"><button class="btn btn-ghost btn-sm" onclick="delRule(${r.id})">删除</button></td>
+              </tr>`).join('')}
+          </tbody>
+        </table>
+      </div>
+    </div>
+    <div class="note">演示话术：<strong>金额阈值决定谁来审</strong>。例如现款采购 ≥ 5000 元必须经老板终审；月结 ≥ 20000 元同理。销售现场可按客户实际流程直接改数字演示。</div>`;
+}
+
+function renderNotice() {
+  const ns = S.notifications.filter((n) => n.to === S.role);
+  document.getElementById('page-title').textContent = '通知与日志';
+  document.getElementById('page-sub').textContent = '审批留痕：谁在什么时候做了什么，全部可追溯';
+  document.getElementById('view').innerHTML = `
+    <div class="panel">
+      <div class="panel-head"><h2>我的通知</h2><span class="meta">${ns.filter((n) => !n.read).length} 条未读</span><div class="spacer"></div>
+        <button class="btn btn-ghost btn-sm" onclick="readAll()">全部标记已读</button></div>
+      <div class="panel-body" style="padding:0">
+        <table><thead><tr><th>时间</th><th>标题</th><th>内容</th><th>状态</th></tr></thead>
+        <tbody>${ns.map((n, i) => `<tr><td class="num" style="color:var(--ink-3);font-size:12.5px">${n.t}</td><td class="strong">${n.title}</td><td style="color:var(--ink-2)">${n.body}</td><td>${n.read ? '<span class="tag mute">已读</span>' : '<span class="tag info">未读</span>'}</td></tr>`).join('')}</tbody></table>
+      </div>
+    </div>
+    <div class="panel">
+      <div class="panel-head"><h2>操作日志</h2></div>
+      <div class="panel-body" style="padding:0">
+        <table><thead><tr><th>时间</th><th>操作人</th><th>动作</th><th>详情</th></tr></thead>
+        <tbody>${S.logs.map((l) => `<tr><td class="num" style="color:var(--ink-3);font-size:12.5px">${l.t}</td><td class="strong">${l.u}</td><td>${l.a}</td><td style="color:var(--ink-2)">${l.d}</td></tr>`).join('')}</tbody></table>
+      </div>
+    </div>`;
+}
+
+/* ---- 填单页 ---- */
+let form = null;
+function renderForm(type) {
+  const isP = type === 'purchase';
+  if (!form || form.type !== type) {
+    form = {
+      type,
+      biz: 'ecommerce',
+      settlement: 'monthly',
+      supplier: isP ? DEMO.suppliers[0].name : '',
+      payee: isP ? '' : DEMO.payees[0].name,
+      date: '2026-10-22',
+      items: [{ p: isP ? '包装纸箱采购' : '差旅费', a: '12000', r: '' }],
+      atts: []
+    };
+  }
+  document.getElementById('page-title').textContent = isP ? '采购货款请款单' : '费用报销单';
+  document.getElementById('page-sub').textContent = isP ? '填写请款信息，提交后按金额阈值自动进入审批流' : '填写报销信息，提交后按金额阈值自动进入审批流';
+  const sum = form.items.reduce((s, i) => s + (Number(i.a) || 0), 0);
+  document.getElementById('view').innerHTML = `
+    <div class="panel">
+      <div class="panel-head"><h2>${isP ? '请款信息' : '报销信息'}</h2></div>
+      <div class="panel-body">
+        <div style="display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px">
+          <div class="field"><label>${isP ? '请款部门' : '报销部门'}</label>
+            <div class="blocks">
+              <div class="block${form.biz === 'ecommerce' ? ' on' : ''}" onclick="setForm('biz','ecommerce')"><span class="t">电商</span><span class="s">线上店铺</span></div>
+              <div class="block${form.biz === 'channel' ? ' on' : ''}" onclick="setForm('biz','channel')"><span class="t">渠道</span><span class="s">分销 / 线下</span></div>
+            </div></div>
+          ${isP ? `<div class="field"><label>结算方式</label>
+            <div class="blocks">
+              ${[['monthly', '月结', '次月对账'], ['cash', '现款', '即时支付'], ['weekly', '周结', '每周一对账']].map(([v, t, s]) =>
+                `<div class="block${form.settlement === v ? ' on' : ''}" onclick="setForm('settlement','${v}')"><span class="t">${t}</span><span class="s">${s}</span></div>`).join('')}
+            </div></div>` : `<div class="field"><label>报销日期</label><input type="date" value="${form.date}" onchange="setForm('date',this.value)" /></div>`}
+        </div>
+        <div class="field"><label>${isP ? '供应商' : '领款人'}</label>
+          <select onchange="setForm('${isP ? 'supplier' : 'payee'}',this.value)">
+            ${(isP ? DEMO.suppliers.map((s) => s.name) : DEMO.payees.map((p) => p.name)).map((n) => `<option${(isP ? form.supplier : form.payee) === n ? ' selected' : ''}>${n}</option>`).join('')}
+          </select>
+          <div class="hint">${isP
+            ? (DEMO.suppliers.find((s) => s.name === form.supplier) || {}).bank + ' · ' + (DEMO.suppliers.find((s) => s.name === form.supplier) || {}).account
+            : (DEMO.payees.find((p) => p.name === form.payee) || {}).bank + ' · ' + (DEMO.payees.find((p) => p.name === form.payee) || {}).account}</div>
+        </div>
+      </div>
+    </div>
+    <div class="panel">
+      <div class="panel-head"><h2>${isP ? '请款明细' : '报销明细'}</h2><div class="spacer"></div><span class="amt lead">¥ ${money(sum)}</span></div>
+      <div class="panel-body">
+        ${form.items.map((it, i) => `
+          <div class="item-row">
+            <select onchange="setItem(${i},'p',this.value)">
+              ${(isP ? ['包装纸箱采购', '封箱胶带', '物流运费', '展示架定制', '渠道推广服务费'] : ['差旅费', '办公用品', '客户招待', '快递费', '展会物料'])
+                .map((o) => `<option${it.p === o ? ' selected' : ''}>${o}</option>`).join('')}
+            </select>
+            <input class="num" type="number" value="${it.a}" placeholder="金额" onchange="setItem(${i},'a',this.value)" />
+            <input value="${it.r}" placeholder="备注（选填）" onchange="setItem(${i},'r',this.value)" />
+            <button class="btn btn-ghost btn-sm" onclick="delItem(${i})" title="删除">×</button>
+          </div>`).join('')}
+        <button class="btn btn-ghost btn-sm" onclick="addItem()">添加明细</button>
+        <div class="hint">金额只保留填写栏，右侧无上下微调按钮，避免误改金额</div>
+      </div>
+    </div>
+    <div class="panel">
+      <div class="panel-head"><h2>附件</h2><span class="meta">${isP ? '发票 / 收据 / 付款记录 / 月结单 / 入库单' : '发票 / 收据 / 付款记录'}</span></div>
+      <div class="panel-body">
+        <button class="btn btn-ghost btn-sm" onclick="fakeUpload()">模拟上传附件</button>
+        <div class="file-list">
+          ${form.atts.map((a, i) => `<div class="file-item"><span class="file-ico" style="background:var(--brand)">${a.t}</span><span>${a.n}</span><span class="spacer"></span><span style="color:var(--ink-3)">${a.s}</span><button class="btn btn-ghost btn-sm" onclick="delAtt(${i})">移除</button></div>`).join('')}
+        </div>
+        ${form.atts.length ? '' : '<div class="hint">演示环境不上传真实文件，点击上方按钮模拟</div>'}
+      </div>
+    </div>
+    <div style="display:flex;gap:10px">
+      <button class="btn btn-primary" onclick="submitForm()">提交审批</button>
+      <button class="btn btn-ghost" onclick="form=null;render()">重填</button>
+    </div>`;
+}
+
+/* ============================================================
+   详情 / 付款弹层
+   ============================================================ */
+function openDetail(id) { S.detailId = id; render(); }
+function closeDetail() { S.detailId = null; render(); }
+function openPay(id) { S.detailId = id; S.payId = id; render(); }
+
+function renderOverlay() {
+  const root = document.getElementById('overlay-root');
+  if (!S.detailId) { root.innerHTML = ''; return; }
+  const r = S.reports.find((x) => x.id === S.detailId);
+  if (!r) { root.innerHTML = ''; return; }
+  const isP = r.type === 'purchase';
+  const t = total(r);
+  const node = myNode();
+  const canAct = (node === 'boss' && r.status === 'pending_boss') || (node === 'finance' && r.status === 'pending_finance');
+  const canPay = !isBoss() && r.status === 'approved' && S.payId === r.id;
+
+  root.innerHTML = `
+    <div class="overlay full" onmousedown="if(event.target===this)closeAll()">
+      <div class="fullsheet">
+        <div class="sheet-head">
+          <button class="btn btn-ghost btn-sm" onclick="closeAll()">← 返回</button>
+          <h3>审批 · ${r.no}</h3>
+          <div class="spacer"></div>
+          ${typeTag(r.type)} ${statusTag(r.status)}
+          <button class="btn btn-ghost btn-sm" onclick="closeAll()">关闭</button>
+        </div>
+        <div class="sheet-body">
+          <div class="panel">
+            <div class="flow">
+              ${r.flow.length ? r.flow.map((f, i) => `
+                <div class="flow-step">
+                  <span class="flow-dot ${f.s === 'done' ? '' : f.s === 'now' ? 'now' : 'todo'}">${f.s === 'done' ? '✓' : i + 1}</span>
+                  <span>${NODE_LABEL[f.n]}${f.by ? ' · ' + f.by : ''}${f.at ? '<br><span class="num" style="color:var(--ink-3);font-size:12px">' + f.at + '</span>' : ''}</span>
+                </div>${i < r.flow.length - 1 ? '<span class="flow-line"></span>' : ''}`).join('')
+                : '<span style="color:var(--ink-3)">草稿尚未提交，提交后自动匹配审批链</span>'}
+            </div>
+          </div>
+          <div class="sheet-grid">
+            <div class="sheet-main">
+              <div class="panel">
+                <div class="panel-head"><h2>单据信息</h2></div>
+                <div class="panel-body">
+                  <div class="meta-grid">
+                    <div><span class="k">${isP ? '请款部门' : '报销部门'}</span><span class="v">${r.biz === 'ecommerce' ? '电商' : '渠道'}</span></div>
+                    <div><span class="k">${isP ? '请款人' : '报销人'}</span><span class="v">${r.applicant}</span></div>
+                    <div><span class="k">${isP ? '请款日期' : '报销日期'}</span><span class="v num">${r.date}</span></div>
+                    ${isP
+                      ? `<div><span class="k">供应商</span><span class="v">${r.supplier}</span></div>
+                         <div><span class="k">结算方式</span><span class="v">${SETTLEMENT_LABEL[r.settlement] || '—'}</span></div>
+                         <div><span class="k">付款方式</span><span class="v">对公</span></div>
+                         <div style="grid-column:1/-1"><span class="k">收款账号</span><span class="v num">${(DEMO.suppliers.find((s) => s.name === r.supplier) || {}).account || '—'} · ${(DEMO.suppliers.find((s) => s.name === r.supplier) || {}).bank || ''}</span></div>`
+                      : `<div><span class="k">领款人</span><span class="v">${r.payee}</span></div>
+                         <div><span class="k">付款方式</span><span class="v">对私</span></div>
+                         <div style="grid-column:1/-1"><span class="k">收款账号</span><span class="v num">${(DEMO.payees.find((p) => p.name === r.payee) || {}).account || '—'} · ${(DEMO.payees.find((p) => p.name === r.payee) || {}).bank || ''}</span></div>`}
+                    ${r.rejectReason ? `<div style="grid-column:1/-1"><span class="k">驳回原因</span><span class="v" style="color:var(--c-danger-ink)">${r.rejectReason}</span></div>` : ''}
+                  </div>
+                </div>
+              </div>
+              <div class="panel">
+                <div class="panel-head"><h2>${isP ? '请款明细' : '报销明细'}</h2><span class="meta">${r.items.length} 项</span></div>
+                <div class="panel-body" style="padding:0">
+                  <table>
+                    <thead><tr><th>${isP ? '请款项目' : '用途'}</th><th class="td-right">金额</th><th>备注</th></tr></thead>
+                    <tbody>
+                      ${r.items.map((it) => `<tr><td>${it.p}</td><td class="td-right num">${money(it.a)}</td><td style="color:var(--ink-3)">${it.r || '—'}</td></tr>`).join('')}
+                      <tr style="background:var(--surface-2)"><td class="strong">合计</td><td class="td-right"><span class="amt lead">${money(t)}</span></td><td></td></tr>
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+              <div class="panel">
+                <div class="panel-head"><h2>附件（${r.atts.length}）</h2></div>
+                <div class="panel-body">
+                  ${r.atts.length
+                    ? r.atts.map((a) => `<div class="file-item"><span class="file-ico" style="background:var(--brand)">${a.t}</span><span>${a.n}</span><span class="spacer"></span><span style="color:var(--ink-3)">${a.s}</span></div>`).join('')
+                    : '<div style="color:var(--ink-3);font-size:13.5px">无附件</div>'}
+                </div>
+              </div>
+              ${r.cashier ? `
+              <div class="panel">
+                <div class="panel-head"><h2>出纳付款</h2></div>
+                <div class="panel-body">
+                  <div class="meta-grid">
+                    <div><span class="k">付款账户</span><span class="v">${r.cashier.account}</span></div>
+                    <div><span class="k">结算方式</span><span class="v">${r.cashier.settlement ? SETTLEMENT_LABEL[r.cashier.settlement] : '—'}</span></div>
+                    <div><span class="k">付款时间</span><span class="v num">${r.cashier.at}</span></div>
+                    ${r.cashier.note ? `<div style="grid-column:1/-1"><span class="k">备注</span><span class="v">${r.cashier.note}</span></div>` : ''}
+                    ${r.cashier.receipt ? `<div style="grid-column:1/-1"><span class="k">回单</span><span class="v">${r.cashier.receipt}</span></div>` : ''}
+                  </div>
+                </div>
+              </div>` : ''}
+            </div>
+            <aside class="sheet-side">
+              <div class="side-card">
+                <h3>${canPay ? '登记付款' : '审批操作'}</h3>
+                <div style="margin-bottom:14px">${statusTag(r.status)}</div>
+                ${canPay ? payFormHtml(r) : canAct ? `
+                  <div class="field"><label>审批意见（选填）</label>
+                    <textarea id="cmt" placeholder="填写审批意见，随审批记录留痕"></textarea></div>
+                  <div style="display:grid;gap:10px">
+                    <button class="btn btn-primary" onclick="act('approve',${r.id})">通过</button>
+                    <button class="btn btn-danger" onclick="act('reject',${r.id})">驳回</button>
+                  </div>`
+                  : `<div style="font-size:13.5px;color:var(--ink-2);line-height:1.7">
+                      ${r.status === 'approved' && isBoss() ? '该单已通过审批，等待出纳（刘敏）付款。' : ''}
+                      ${r.status === 'paid' ? '该单已完成付款，可查看上方付款信息。' : ''}
+                      ${r.status === 'draft' ? '草稿状态，员工提交后进入审批流。' : ''}
+                      ${r.status === 'rejected' ? '该单已被驳回，需申请人修改后重新提交。' : ''}
+                      ${(r.status === 'pending_boss' || r.status === 'pending_finance') ? '当前节点不由本角色处理，切换角色可继续演示。' : ''}
+                     </div>`}
+              </div>
+            </aside>
+          </div>
+        </div>
+      </div>
+    </div>`;
+}
+
+function payFormHtml(r) {
+  return `
+    <div class="field"><label>结算方式</label>
+      <div class="blocks" style="flex-direction:column">
+        ${[['monthly', '月结'], ['cash', '现款'], ['weekly', '周结']].map(([v, t]) =>
+          `<div class="block${(r.settlement || 'monthly') === v ? ' on' : ''}" onclick="setPaySettle('${v}')" id="ps-${v}"><span class="t">${t}</span></div>`).join('')}
+      </div></div>
+    <div class="field"><label>付款账户</label>
+      <select id="pay-acc">${DEMO.payAccounts.map((a) => `<option${a === '中国银行转账' ? ' selected' : ''}>${a}</option>`).join('')}</select></div>
+    <div class="field"><label>回单</label>
+      <button class="btn btn-ghost btn-sm" onclick="fakeReceipt()">模拟上传回单</button>
+      <div id="receipt-tip" class="hint">未上传</div></div>
+    <div class="field"><label>付款备注（选填）</label><input id="pay-note" placeholder="如：与月结对账单一致" /></div>
+    <button class="btn btn-primary" style="width:100%" onclick="doPay(${r.id})">确认已付款</button>`;
+}
+
+/* ============================================================
+   交互
+   ============================================================ */
+let payState = { settlement: null, receipt: null };
+
+function setPaySettle(v) {
+  payState.settlement = v;
+  ['monthly', 'cash', 'weekly'].forEach((k) => {
+    const el = document.getElementById('ps-' + k);
+    if (el) el.classList.toggle('on', k === v);
+  });
+}
+function fakeReceipt() {
+  payState.receipt = '回单-' + Date.now().toString().slice(-6) + '.pdf';
+  document.getElementById('receipt-tip').textContent = '已上传：' + payState.receipt;
+  toast('回单已上传', 'ok');
+}
+function doPay(id) {
+  const r = S.reports.find((x) => x.id === id);
+  const acc = document.getElementById('pay-acc').value;
+  const note = document.getElementById('pay-note').value;
+  const st = payState.settlement || r.settlement || 'monthly';
+  r.status = 'paid';
+  r.flow = r.flow.map((f) => (f.n === 'cashier' ? { n: 'cashier', s: 'done', by: '刘敏', at: nowStr() } : f));
+  if (!r.flow.some((f) => f.n === 'cashier')) r.flow.push({ n: 'cashier', s: 'done', by: '刘敏', at: nowStr() });
+  r.cashier = { account: acc, settlement: st, at: nowStr(), note, receipt: payState.receipt };
+  pushLog(me().name, '登记付款', `${r.no} ${acc}${st ? '（' + SETTLEMENT_LABEL[st] + '）' : ''} ¥${money(total(r))}`);
+  S.notifications.unshift({ t: nowStr(), title: r.no + ' 已付款', body: `付款账户：${acc}`, read: false, to: 'boss' });
+  payState = { settlement: null, receipt: null };
+  closeAll();
+  toast(`付款已登记：${r.no}`, 'ok');
+  render();
+}
+
+function act(kind, id) {
+  const r = S.reports.find((x) => x.id === id);
+  const cmt = (document.getElementById('cmt') || {}).value || '';
+  if (kind === 'reject') {
+    const reason = cmt.trim() || window.prompt('请填写驳回原因', '请补充凭证后重新提交');
+    if (!reason) return;
+    r.status = 'rejected';
+    r.rejectReason = reason;
+    r.flow = r.flow.map((f) => (f.s === 'now' ? { ...f, s: 'done', by: me().name, at: nowStr(), comment: reason } : f));
+    pushLog(me().name, '驳回', `${r.no} ${reason}`);
+    toast(`已驳回：${r.no}`, 'err');
+  } else {
+    const node = myNode();
+    r.flow = r.flow.map((f) => (f.s === 'now' ? { ...f, s: 'done', by: me().name, at: nowStr(), comment: cmt } : f));
+    const nextNode = node === 'boss' ? 'finance' : 'cashier';
+    const hasNext = r.flow.some((f) => f.n === nextNode && f.s === 'todo');
+    if (hasNext) {
+      r.flow = r.flow.map((f) => (f.n === nextNode ? { ...f, s: 'now' } : f));
+      r.status = nextNode === 'finance' ? 'pending_finance' : 'approved';
+    } else {
+      r.status = 'approved';
+    }
+    pushLog(me().name, '审批通过', `${r.no} ${NODE_LABEL[node]}节点`);
+    S.notifications.unshift({ t: nowStr(), title: r.no + ' 已通过', body: `${me().name} 通过 ${NODE_LABEL[node]}`, read: false, to: node === 'boss' ? 'cw' : 'boss' });
+    toast(`已通过：${r.no}`, 'ok');
+  }
+  closeAll();
+  render();
+}
+
+function setForm(k, v) { form[k] = v; render(); }
+function setItem(i, k, v) { form.items[i][k] = v; render(); }
+function addItem() { form.items.push({ p: form.type === 'purchase' ? '物流运费' : '办公用品', a: '', r: '' }); render(); }
+function delItem(i) { form.items.splice(i, 1); render(); }
+function fakeUpload() { form.atts.push({ n: '发票-' + (form.atts.length + 1) + '.pdf', s: '320 KB', t: 'PDF' }); toast('附件已上传', 'ok'); render(); }
+function delAtt(i) { form.atts.splice(i, 1); render(); }
+
+function submitForm() {
+  const valid = form.items.filter((i) => Number(i.a) > 0);
+  if (!valid.length) { toast('请至少填写一条有效金额明细', 'err'); return; }
+  const t = valid.reduce((s, i) => s + Number(i.a), 0);
+  const isP = form.type === 'purchase';
+  const rule = matchRule(form.type, isP ? form.settlement : '', t);
+  const nodes = rule ? rule.nodes : ['finance', 'cashier'];
+  const first = nodes[0];
+  const id = Math.max(...S.reports.map((r) => r.id)) + 1;
+  const no = (isP ? 'QK' : 'BX') + '-20261022-00' + String(id).padStart(2, '0');
+  S.reports.unshift({
+    id, no, type: form.type, biz: form.biz, applicant: me().name, dept: form.biz === 'ecommerce' ? '电商' : '渠道',
+    supplier: isP ? form.supplier : undefined, payee: isP ? undefined : form.payee,
+    settlement: isP ? form.settlement : undefined, date: form.date,
+    items: valid.map((i) => ({ p: i.p, a: Number(i.a), r: i.r })),
+    status: first === 'boss' ? 'pending_boss' : 'pending_finance',
+    flow: nodes.map((n, i) => ({ n, s: i === 0 ? 'now' : 'todo' })),
+    atts: form.atts.slice()
+  });
+  pushLog(me().name, '提交单据', `${no} ¥${money(t)}`);
+  S.notifications.unshift({ t: nowStr(), title: no + ' 待你审批', body: `${me().name} 提交 ${isP ? '采购请款' : '费用报销'} ¥${money(t)}`, read: false, to: first === 'boss' ? 'boss' : 'cw' });
+  form = null;
+  toast(`已提交：${no}（${nodes.map((n) => NODE_LABEL[n]).join(' → ')}）`, 'ok');
+  go('todo');
+}
+
+function matchRule(type, settlement, amount) {
+  const rs = S.flow.filter((r) => r.type === type)
+    .filter((r) => !r.settlement || r.settlement === settlement)
+    .filter((r) => amount >= r.min && (r.max === null || amount < r.max))
+    .sort((a, b) => (a.settlement ? 1 : 0) - (b.settlement ? 1 : 0) || b.min - a.min);
+  return rs[0] || null;
+}
+
+function updRule(id, k, v) {
+  const r = S.flow.find((x) => x.id === id);
+  if (k === 'min' || k === 'max') r[k] = v === '' ? null : Number(v);
+  else r[k] = v;
+}
+function delRule(id) { S.flow = S.flow.filter((r) => r.id !== id); render(); }
+function addRule() {
+  S.flow.push({ id: Date.now(), type: 'purchase', settlement: 'monthly', min: 0, max: null, nodes: ['finance', 'cashier'], desc: '新增规则' });
+  render();
+}
+function saveFlow() { toast('审批流配置已保存（演示环境仅保存在当前页面）', 'ok'); }
+
+function exportCsv() {
+  const rows = [['单号', '类型', '申请人', '部门', '日期', '结算方式', '状态', '金额']];
+  S.reports.forEach((r) => rows.push([r.no, r.type === 'purchase' ? '采购请款' : '费用报销', r.applicant, r.dept, r.date, r.settlement ? SETTLEMENT_LABEL[r.settlement] : '', STATUS_META[r.status].label, total(r).toFixed(2)]));
+  const csv = '\uFEFF' + rows.map((r) => r.map((c) => '"' + String(c).replace(/"/g, '""') + '"').join(',')).join('\r\n');
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(new Blob([csv], { type: 'text/csv;charset=utf-8' }));
+  a.download = '费用报销统计.csv';
+  a.click();
+  toast('已导出 CSV', 'ok');
+}
+
+function nowStr() {
+  const d = new Date();
+  const p = (n) => String(n).padStart(2, '0');
+  return `${d.getFullYear()}-${p(d.getMonth() + 1)}-${p(d.getDate())} ${p(d.getHours())}:${p(d.getMinutes())}`;
+}
+function pushLog(u, a, d) { S.logs.unshift({ t: nowStr(), u, a, d }); }
+function readAll() { S.notifications.forEach((n) => { if (n.to === S.role) n.read = true; }); render(); }
+
+function toast(msg, type) {
+  const el = document.createElement('div');
+  el.className = 'toast ' + (type || '');
+  el.textContent = msg;
+  document.getElementById('toast-wrap').appendChild(el);
+  setTimeout(() => el.remove(), 2600);
+}
+
+/* 二级菜单指向的是「全部单据」的列表视图（按类型过滤），不是填单页 */
+function go(p) {
+  if (p === 'purchase' || p === 'expense') { S.page = 'all'; S.filter = p; }
+  else if (p === 'all') { S.page = 'all'; S.filter = 'all'; }
+  else { S.page = p; }
+  form = null;
+  render();
+  window.scrollTo(0, 0);
+}
+/* 从「全部单据」右上角进入空白填单页（员工提单入口） */
+function goNew(k) { S.page = k; form = null; render(); window.scrollTo(0, 0); }
+function setRole(r) { S.role = r; S.loginRole = r; S.page = 'home'; closeAll(); render(); }
+function setFilter(f) { S.filter = f; render(); }
+function closeAll() { S.detailId = null; S.payId = null; payState = { settlement: null, receipt: null }; render(); }
+function resetDemo() {
+  S.reports = seedReports();
+  S.notifications = seedNotifications();
+  S.logs = seedLogs();
+  S.flow = JSON.parse(JSON.stringify(DEMO.flowConfig));
+  form = null; closeAll();
+  toast('演示数据已重置', 'ok');
+  render();
+}
+
+/* ---------- 登录页 ---------- */
+function loginHtml() {
+  const cards = [
+    { k: 'boss', name: '周明远', title: '总经理 · 老板', desc: '看全公司支出，审批大额单据终审', color: '#15253F', mark: '总' },
+    { k: 'cw', name: '王芳', title: '财务主管 · 财务', desc: '财务复核、出纳付款、配置审批流', color: '#2F6F5C', mark: '财' }
+  ];
+  return `
+  <div class="login-wrap">
+    <div class="login-brand">
+      <div>
+        <div class="login-logo"><span class="login-mark">¥</span>
+          <div><div class="n">费用报销系统</div><div class="s">EXPENSE LEDGER · DEMO</div></div></div>
+        <h1 class="login-title">把每一笔支出<br>管在流程里</h1>
+        <div class="login-gold"></div>
+        <p class="login-desc">从申请、审批到付款与对账，全链路留痕；金额阈值自动决定谁来审，老板只盯大额。</p>
+        <div class="login-points">
+          <div><i></i><span><b>阈值驱动审批</b>：小额财务直审，大额自动加老板终审</span></div>
+          <div><i></i><span><b>三种结算方式</b>：月结 / 现款 / 周结，采购与报销分开管</span></div>
+          <div><i></i><span><b>全链路留痕</b>：审批意见、付款账户、回单逐一可追溯</span></div>
+        </div>
+      </div>
+      <div class="login-stats">
+        <div><div class="v">19</div><div class="k">演示单据</div></div>
+        <div><div class="v">2</div><div class="k">业务部门</div></div>
+        <div><div class="v">3</div><div class="k">结算方式</div></div>
+      </div>
+    </div>
+    <div class="login-form">
+      <div class="login-box">
+        <h2>演示登录</h2>
+        <div class="sub">选择一个角色，密码已自动填好，直接点「进入系统」即可</div>
+        <div class="role-cards">
+          ${cards.map((c) => `
+            <div class="role-card${S.loginRole === c.k ? ' on' : ''}" onclick="pickRole('${c.k}')">
+              <span class="role-avatar" style="background:${c.color}">${c.mark}</span>
+              <div><div class="n">${c.name} · ${c.title}</div><div class="d">${c.desc}</div></div>
+            </div>`).join('')}
+        </div>
+        <div class="field"><label>账号</label><input id="lg-user" value="${S.loginRole}" readonly /></div>
+        <div class="field"><label>密码</label><input id="lg-pass" type="text" value="123" /></div>
+        <button class="btn btn-primary" style="width:100%" onclick="doLogin()">进入系统</button>
+        <div class="login-tip">演示账号：<b>boss</b>（老板）/ <b>cw</b>（财务），统一密码 <b>123</b>。点上方角色卡可快速切换。</div>
+      </div>
+    </div>
+  </div>`;
+}
+function pickRole(k) { S.loginRole = k; render(); }
+function doLogin() {
+  S.role = S.loginRole;
+  S.stage = 'app';
+  S.page = 'home';
+  form = null;
+  render();
+  toast(`欢迎，${me().name}（${me().title}）`, 'ok');
+}
+function logout() { S.stage = 'login'; S.detailId = null; S.payId = null; render(); }
+
+function render() {
+  const shell = document.querySelector('.shell');
+  const loginRoot = document.getElementById('login-root');
+  if (S.stage === 'login') {
+    shell.style.display = 'none';
+    document.getElementById('overlay-root').innerHTML = '';
+    loginRoot.innerHTML = loginHtml();
+    return;
+  }
+  shell.style.display = '';
+  loginRoot.innerHTML = '';
+  renderNav();
+  const vis = pagesForRole();
+  const okPage = vis.some((p) => p.k === S.page) || vis.some((p) => (p.children || []).some((c) => c.k === S.page));
+  if (!okPage) S.page = 'home';
+  const p = S.page;
+  if (p === 'home') renderHome();
+  else if (p === 'todo') renderTodo();
+  else if (p === 'all') renderAll();
+  else if (p === 'cashier') renderCashier();
+  else if (p === 'report') renderReport();
+  else if (p === 'flow') renderFlow();
+  else if (p === 'notice') renderNotice();
+  else if (p === 'purchase') renderForm('purchase');
+  else if (p === 'expense') renderForm('expense');
+  renderOverlay();
+}
+
+render();
+</script>
+</body>
+</html>
