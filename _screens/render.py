@@ -30,6 +30,8 @@ MAP = {
     "06b-work-order-detail": "service-management-detail",
     "07-customer-service": "ai-customer-service-overview",
     "07b-knowledge-base": "ai-customer-service-detail",
+    "08-expense-control": "expense-control-overview",
+    "08b-expense-detail": "expense-control-detail",
 }
 
 W, H = 1400, 875

@@ -14,6 +14,7 @@ from gen_lib import (
 
 from _new01 import S01N, S01BN
 from _new02 import S02N, S02BN
+from _new08 import S08, S08B
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 NOTE_TS = "数据更新于 2026-09-21 09:42"
@@ -946,7 +947,7 @@ S07B = dict(
 )
 
 
-SCREENS = [S01N, S01BN, S02N, S02BN, S03, S03B, S04, S04B, S05, S05B, S06, S06B, S07, S07B]
+SCREENS = [S01N, S01BN, S02N, S02BN, S03, S03B, S04, S04B, S05, S05B, S06, S06B, S07, S07B, S08, S08B]
 
 
 def build():

@@ -190,13 +190,34 @@
      四、首页渲染
      ====================================================================== */
 
-  function capHTML(id, i) {
-    var sc = S.scenarios[id];
-    if (!sc) return "";
+  function cnLabel(label) {
+    var v = String(label || "");
+    var cut = v.indexOf("-");
+    if (cut <= 0) return esc(v);
+    return "<b>" + esc(v.slice(0, cut)) + "</b><i>" + esc(v.slice(cut)) + "</i>";
+  }
+
+  function capHTML(item, i) {
+    var sc, label, href, blank = false, cn = false;
+    if (typeof item === "string") {
+      sc = S.scenarios[item];
+      if (!sc) return "";
+      label = sc.nameEn;
+      href = item + ".html";
+    } else {
+      if (!item || !item.href) return "";
+      sc = { icon: item.icon, accent: item.accent };
+      label = item.label;
+      href = item.href;
+      blank = !!item.blank;
+      cn = !!item.cn;
+    }
     return (
-      '<a class="cap hero-l" style="--i:' + (i + 2) + '" href="' + esc(id) + '.html"' +
+      '<a class="cap hero-l" style="--i:' + (i + 2) + '" href="' + esc(href) + '"' +
+      (blank ? ' target="_blank" rel="noopener"' : "") +
       ' data-cd="' + esc(sc.accent.d) + '" data-cl="' + esc(sc.accent.l) + '">' +
-      '<span class="cap-n">' + esc(sc.nameEn) + "</span>" +
+      '<span class="cap-n' + (cn ? " cap-cn" : "") + '">' +
+      (cn ? cnLabel(label) : esc(label)) + "</span>" +
       '<span class="cap-b">' + icon(sc.icon) + "</span></a>"
     );
   }
@@ -209,7 +230,7 @@
       hl =
         '<ul class="bhl">' +
         sc.values
-          .slice(0, 3)
+          .slice(0, 4)
           .map(function (v) {
             return "<li>" + icon("check") + "<span>" + txt(v.k) + "</span></li>";
           })
@@ -253,9 +274,9 @@
     h.push('<a class="btn btn-p" href="' + esc(S.hero.primary.href) + '">' + esc(S.hero.primary.label) + icon("arrow-right") + "</a>");
     h.push('<a class="btn btn-g" href="' + esc(S.hero.secondary.href) + '">' + esc(S.hero.secondary.label) + "</a>");
     h.push("</div></div>");
-    h.push('<div class="spectrum" aria-label="场景索引">');
-    S.order.forEach(function (id, i) {
-      h.push(capHTML(id, i));
+    h.push('<div class="spectrum" aria-label="系统与演示索引">');
+    (S.spectrum || S.order).forEach(function (item, i) {
+      h.push(capHTML(item, i));
     });
     h.push("</div>");
     h.push("</div></div></section>");
@@ -268,7 +289,7 @@
       h.push('<p class="body">' + txt(sec.desc) + "</p>");
       h.push("</div>");
       if (sec.layout === "bento") {
-        h.push('<div class="bento">');
+        h.push('<div class="bento' + (sec.scenarios.length >= 4 ? " bento-4" : "") + '">');
         sec.scenarios.forEach(function (id, i) {
           h.push(cardHTML(id, i, i === 0));
         });
@@ -398,13 +419,15 @@
       esc(U.caseLabel) + '</div><h2 class="h2">' + txt(c.title) + "</h2>" +
       '<p class="lede" style="margin-top:16px">' + txt(c.lede) + "</p></div>" +
       '<div class="case-claims">' + claims + "</div>" +
-      '<div class="case-scale">' + scale + "</div>" +
-      '<div class="case-effort rv">' +
-      '<div class="case-effort-hd"><h3>月结投入对比</h3><span>单位：人天</span></div>' +
-      "<table><thead><tr><th>环节</th><th class=\"num\" style=\"text-align:right\">手工</th>" +
-      '<th class="num" style="text-align:right">系统</th>' +
-      '<th class="num" style="text-align:right">降幅</th></tr></thead><tbody>' +
-      rows + total + "</tbody></table></div>" +
+      (scale ? '<div class="case-scale">' + scale + "</div>" : "") +
+      (rows
+        ? '<div class="case-effort rv">' +
+          '<div class="case-effort-hd"><h3>月结投入对比</h3><span>单位：人天</span></div>' +
+          "<table><thead><tr><th>环节</th><th class=\"num\" style=\"text-align:right\">手工</th>" +
+          '<th class="num" style="text-align:right">系统</th>' +
+          '<th class="num" style="text-align:right">降幅</th></tr></thead><tbody>' +
+          rows + total + "</tbody></table></div>"
+        : "") +
       '<div class="case-miles">' + miles + "</div>" +
       '<div class="case-note rv">' + icon("alert-triangle") + "<span>" + esc(c.disclaimer) + "</span></div>" +
       "</div></section>"
